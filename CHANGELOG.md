@@ -9,6 +9,7 @@
 - Fixed Awakened Tools playing mode swap sounds for all nearby players
 - Fixed Awakened Tools sending double messages when switching modes
 - Fixed bug preventing Awakened Tools from breaking blocks with hardness of 0
+- Fixed unused sound event error
 
 ---
 
