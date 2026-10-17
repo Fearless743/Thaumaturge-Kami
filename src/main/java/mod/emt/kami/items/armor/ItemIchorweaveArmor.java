@@ -1,195 +1,124 @@
 package mod.emt.kami.items.armor;
 
-import mod.emt.kami.Kami;
-import mod.emt.kami.client.model.armor.ModelIchorArmor;
+import com.leclowndu93150.thaumaturge.api.items.IVisDiscountGear;
+import com.leclowndu93150.thaumaturge.api.items.IWarpingGear;
+import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import mod.emt.kami.items.IDyeableGear;
+import mod.emt.kami.items.ModMaterials;
 import mod.emt.kami.items.base.ItemBaseArmor;
-import mod.emt.kami.registry.ModItemsKAMI;
-import net.minecraft.block.BlockCauldron;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.model.ModelBiped;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Enchantments;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.IItemPropertyGetter;
-import net.minecraft.item.ItemArmor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.jetbrains.annotations.NotNull;
-import thaumcraft.api.items.IGoggles;
-import thaumcraft.api.items.IVisDiscountGear;
-import thaumcraft.api.items.IWarpingGear;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Unit;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.DyedItemColor;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.LayeredCauldronBlock;
+import net.minecraft.world.level.block.state.BlockState;
 
-import javax.annotation.Nullable;
-import java.util.List;
+import java.util.function.Consumer;
 
-public class ItemIchorweaveArmor extends ItemBaseArmor implements IDyeableGear, IWarpingGear, IVisDiscountGear, IGoggles {
-    protected static final String TEXTURE_PATH_1 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_layer_1.png").toString();
-    protected static final String TEXTURE_PATH_2 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_layer_2.png").toString();
-    protected static final String TEXTURE_PATH_DYED_1 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_layer_1_dyed.png").toString();
-    protected static final String TEXTURE_PATH_DYED_2 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_layer_2_dyed.png").toString();
-    protected static final String TEXTURE_PATH_DYED_OVERLAY_1 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_layer_1_dyed_overlay.png").toString();
-    protected static final String TEXTURE_PATH_DYED_OVERLAY_2 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_layer_2_dyed_overlay.png").toString();
+/**
+ * The dyeable Ichorweave robe set. The dyed colour is stored in the vanilla {@link DyedItemColor}
+ * component so it behaves like leather armour (including the "dyed" tooltip). A filled cauldron
+ * washes the dye back out, matching the original item's right-click behaviour.
+ */
+public class ItemIchorweaveArmor extends ItemBaseArmor implements IDyeableGear, IWarpingGear, IVisDiscountGear {
+    public static final int DEFAULT_DYED_COLOR = 12607488;
 
-    public ItemIchorweaveArmor(String unlocName, EntityEquipmentSlot equipmentSlot) {
-        super(unlocName, ModItemsKAMI.MATERIAL_ICHORCLOTH, equipmentSlot, null);
-        this.addPropertyOverride(new ResourceLocation("dyed"), new IItemPropertyGetter() {
-            @SideOnly(Side.CLIENT)
-            public float apply(@NotNull ItemStack stack, @Nullable World worldIn, @Nullable EntityLivingBase entityIn) {
-                if (getDyedColor(stack) != getDefaultDyedColorForMeta(stack.getMetadata())) {
-                    return 1.0F;
-                }
+    private final EquipmentSlot slot;
 
-                return 0.0F;
-            }
-        });
+    public ItemIchorweaveArmor(EquipmentSlot slot, Item.Properties properties) {
+        this(slot, ModMaterials.ICHORWEAVE, properties);
+    }
+
+    protected ItemIchorweaveArmor(EquipmentSlot slot, ArmorMaterial material, Item.Properties properties) {
+        super(applyProperties(properties, slot, material));
+        this.slot = slot;
+    }
+
+    private static Item.Properties applyProperties(Item.Properties properties, EquipmentSlot slot, ArmorMaterial material) {
+        Item.Properties result = properties.fireResistant().humanoidArmor(material, armorType(slot));
+        if (slot == EquipmentSlot.HEAD) {
+            //Replaces the legacy IGoggles marker: Thaumaturge treats any stack carrying this
+            //component as revealing goggles (see GogglesAccess.isRevealing).
+            result = result.component(TTDataComponents.GOGGLES_UPGRADE.get(), Unit.INSTANCE);
+        }
+        return result;
+    }
+
+    protected static ArmorType armorType(EquipmentSlot slot) {
+        return switch (slot) {
+            case HEAD -> ArmorType.HELMET;
+            case CHEST -> ArmorType.CHESTPLATE;
+            case LEGS -> ArmorType.LEGGINGS;
+            case FEET -> ArmorType.BOOTS;
+            default -> ArmorType.BODY;
+        };
+    }
+
+    public EquipmentSlot getEquipmentSlot() {
+        return this.slot;
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
-    public ModelBiped getArmorModel(@NotNull EntityLivingBase entity, @NotNull ItemStack stack, @NotNull EntityEquipmentSlot slot, @NotNull ModelBiped bipedModel) {
-        ModelIchorArmor armorModel = (slot == EntityEquipmentSlot.LEGS) ? ModelIchorArmor.ARMOR_INNER : ModelIchorArmor.ARMOR_OUTER;
+    public InteractionResult useOn(UseOnContext context) {
+        ItemStack stack = context.getItemInHand();
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        BlockState state = level.getBlockState(pos);
 
-        if (armorModel != null) {
-            return armorModel;
+        //Right-clicking a filled cauldron washes the dye out of the armour.
+        if (state.getBlock() instanceof LayeredCauldronBlock
+                && state.getValue(LayeredCauldronBlock.LEVEL) > 0
+                && getDyedColor(stack) != DEFAULT_DYED_COLOR) {
+            setDyedColor(stack, DEFAULT_DYED_COLOR);
+            if (!level.isClientSide()) {
+                LayeredCauldronBlock.lowerFillLevel(state, level, pos);
+                level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 0.5F, 1.0F);
+            }
+            return InteractionResult.SUCCESS;
         }
+        return InteractionResult.PASS;
+    }
 
-        return bipedModel;
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> consumer, TooltipFlag flag) {
+        if (this.slot == EquipmentSlot.HEAD) {
+            consumer.accept(Component.translatable("tooltip.kami.revealing"));
+        }
+        super.appendHoverText(stack, context, display, consumer, flag);
     }
 
     @Override
     public int getDyedColor(ItemStack stack) {
-        if (!stack.hasTagCompound()) {
-            stack.setTagCompound(new NBTTagCompound());
-        }
-
-        assert stack.getTagCompound() != null;
-        if (!stack.getTagCompound().hasKey("color", Constants.NBT.TAG_INT)) {
-            stack.getTagCompound().setInteger("color", getDefaultDyedColorForMeta(stack.getMetadata()));
-        }
-
-        return stack.getTagCompound().getInteger("color");
+        return stack.getOrDefault(DataComponents.DYED_COLOR, new DyedItemColor(DEFAULT_DYED_COLOR)).rgb();
     }
 
     @Override
     public void setDyedColor(ItemStack stack, int color) {
-        if (!stack.hasTagCompound()) {
-            stack.setTagCompound(new NBTTagCompound());
-        }
-
-        assert stack.getTagCompound() != null;
-        stack.getTagCompound().setInteger("color", color);
+        stack.set(DataComponents.DYED_COLOR, new DyedItemColor(color));
     }
 
     @Override
-    public int getDefaultDyedColorForMeta(int meta) {
-        return 12607488;
-    }
-
-    @Override
-    public boolean hasColor(@NotNull ItemStack stack) {
-        return this.getDyedColor(stack) != getDefaultDyedColorForMeta(stack.getMetadata()) ? true : false;
-    }
-
-    @Override
-    public int getColor(@NotNull ItemStack stack) {
-        return getDyedColor(stack);
-    }
-
-    @Override
-    public void removeColor(@NotNull ItemStack stack) {
-        setDyedColor(stack, getDefaultDyedColorForMeta(stack.getMetadata()));
-    }
-
-    @Override
-    public void setColor(@NotNull ItemStack stack, int color) {
-        setDyedColor(stack, color);
-    }
-
-    @Override
-    public @NotNull EnumActionResult onItemUseFirst(EntityPlayer player, World world, @NotNull BlockPos pos, @NotNull EnumFacing side, float hitX, float hitY, float hitZ, @NotNull EnumHand hand) {
-        ItemStack stack = player.getHeldItem(hand);
-        IBlockState state = world.getBlockState(pos);
-
-        // Right-clicking a filled cauldron with the dyed item will wash it out
-        if (state.getBlock() == Blocks.CAULDRON && state.getValue(BlockCauldron.LEVEL) > 0 && getDyedColor(stack) != getDefaultDyedColorForMeta(stack.getMetadata())) {
-            setDyedColor(stack, getDefaultDyedColorForMeta(stack.getMetadata()));
-            world.setBlockState(pos, state.withProperty(BlockCauldron.LEVEL, state.getValue(BlockCauldron.LEVEL) - 1));
-            world.playSound(null, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 0.5F, 1.0F);
-            return EnumActionResult.SUCCESS;
-        }
-
-        return super.onItemUseFirst(player, world, pos, side, hitX, hitY, hitZ, hand);
-    }
-
-    @Override
-    public String getArmorTexture(@NotNull ItemStack stack, @NotNull Entity entity, @NotNull EntityEquipmentSlot slot, @NotNull String type) {
-        // If dye is never used on it, it'll use a dyeless texture instead
-        if (this.getDyedColor(stack) != getDefaultDyedColorForMeta(stack.getMetadata())) {
-            if (slot == EntityEquipmentSlot.LEGS) {
-                return type == null ? TEXTURE_PATH_DYED_2 : TEXTURE_PATH_DYED_OVERLAY_2;
-            } else {
-                return type == null ? TEXTURE_PATH_DYED_1 : TEXTURE_PATH_DYED_OVERLAY_1;
-            }
-        }
-
-        return slot == EntityEquipmentSlot.LEGS ? TEXTURE_PATH_2 : TEXTURE_PATH_1;
-    }
-
-    @Override
-    public boolean canApplyAtEnchantingTable(@NotNull ItemStack stack, @NotNull Enchantment enchantment) {
-        return enchantment != Enchantments.MENDING && enchantment != Enchantments.UNBREAKING && super.canApplyAtEnchantingTable(stack, enchantment);
-    }
-
-    @Override
-    public boolean isEnchantable(@NotNull ItemStack stack) {
-        return true;
-    }
-
-    @Override
-    public int getVisDiscount(ItemStack itemStack, EntityPlayer entityPlayer) {
+    public int getVisDiscount(ItemStack stack) {
         return 7;
     }
 
     @Override
-    public int getWarp(ItemStack itemstack, EntityPlayer player) {
+    public int warp(ItemStack stack, LivingEntity entity) {
         return 1;
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void addInformation(@NotNull ItemStack stack, @Nullable World world, @NotNull List<String> list, @NotNull ITooltipFlag tooltip) {
-        int color = getDyedColor(stack);
-
-        // If it's dyed, show it on the tooltip
-        if (color != getDefaultDyedColorForMeta(stack.getMetadata())) {
-            if (tooltip.isAdvanced())
-                list.add(new TextComponentTranslation("item.color", TextFormatting.GRAY + String.format("#%06X", color)).getFormattedText());
-            else {
-                list.add(TextFormatting.ITALIC + new TextComponentTranslation("item.dyed").getFormattedText());
-            }
-        }
-        if(stack.getItem() instanceof ItemArmor && ((ItemArmor) stack.getItem()).armorType == EntityEquipmentSlot.HEAD) {
-            list.add(TextFormatting.DARK_PURPLE + new TextComponentTranslation("tooltip." + Kami.MOD_ID + ".revealing").getFormattedText());
-        }
-    }
-
-    @Override
-    public boolean showIngamePopups(ItemStack stack, EntityLivingBase entity) {
-        return stack.getItem() instanceof ItemArmor && ((ItemArmor) stack.getItem()).armorType == EntityEquipmentSlot.HEAD;
     }
 }

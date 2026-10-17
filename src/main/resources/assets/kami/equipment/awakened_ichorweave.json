@@ -1,0 +1,30 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "kami:awakened_ichorweave"
+      },
+      {
+        "dyeable": {},
+        "texture": "kami:awakened_ichorweave_dyed"
+      },
+      {
+        "dyeable": {},
+        "texture": "kami:awakened_ichorweave_dyed_overlay"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "kami:awakened_ichorweave"
+      },
+      {
+        "dyeable": {},
+        "texture": "kami:awakened_ichorweave_dyed"
+      },
+      {
+        "dyeable": {},
+        "texture": "kami:awakened_ichorweave_dyed_overlay"
+      }
+    ]
+  }
+}

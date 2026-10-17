@@ -1,0 +1,27 @@
+{
+  "type": "thaumaturge:arcane_workbench_shaped",
+  "crystals": [
+    {
+      "amount": 8,
+      "aspect": "thaumaturge:ignis"
+    }
+  ],
+  "key": {
+    "F": "kami:ichorweave_fabric"
+  },
+  "pattern": [
+    "FFF",
+    "F F",
+    "F F"
+  ],
+  "research": {
+    "entry": "kami:ichorweave_armor"
+  },
+  "result": {
+    "id": "kami:ichorweave_leggings",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  },
+  "vis": 250
+}

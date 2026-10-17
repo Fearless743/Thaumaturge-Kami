@@ -1,0 +1,46 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 75,
+      "aspect": "thaumaturge:auram"
+    },
+    {
+      "amount": 75,
+      "aspect": "thaumaturge:vitreus"
+    },
+    {
+      "amount": 75,
+      "aspect": "thaumaturge:tenebrae"
+    },
+    {
+      "amount": 75,
+      "aspect": "thaumaturge:potentia"
+    },
+    {
+      "amount": 75,
+      "aspect": "thaumaturge:victus"
+    },
+    {
+      "amount": 75,
+      "aspect": "thaumaturge:lux"
+    },
+    {
+      "amount": 75,
+      "aspect": "thaumaturge:spiritus"
+    }
+  ],
+  "catalyst": "#c:gems/diamond",
+  "components": [
+    "minecraft:ender_eye",
+    "thaumaturge:primordial_pearl",
+    "minecraft:ghast_tear"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:ichor"
+  },
+  "result": {
+    "id": "kami:ichor"
+  }
+}

@@ -1,12 +1,12 @@
 package mod.emt.kami.api.item;
 
 import com.google.common.collect.ImmutableList;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 public interface IAreaBreakTool {
-    ImmutableList<BlockPos> getBreakAreaPositions(EntityPlayer player, ItemStack stack, BlockPos origin, boolean includeOrigin);
+    ImmutableList<BlockPos> getBreakAreaPositions(Player player, ItemStack stack, BlockPos origin, boolean includeOrigin);
 
-    boolean spawnDropsAtPlayer(EntityPlayer player, ItemStack stack);
+    boolean spawnDropsAtPlayer(Player player, ItemStack stack);
 }

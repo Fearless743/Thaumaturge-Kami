@@ -1,93 +1,110 @@
 package mod.emt.kami.inventory.containers;
 
-import baubles.api.BaublesApi;
-import baubles.api.cap.IBaublesItemHandler;
 import mod.emt.kami.inventory.handlers.PouchStackHandler;
 import mod.emt.kami.inventory.slots.SlotLocked;
 import mod.emt.kami.registry.ModItemsKAMI;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.Container;
-import net.minecraft.inventory.Slot;
-import net.minecraft.item.ItemStack;
-import net.minecraftforge.items.SlotItemHandler;
+import mod.emt.kami.registry.ModMenusKAMI;
+import net.minecraft.core.NonNullList;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.SlotItemHandler;
 import org.jetbrains.annotations.NotNull;
 
-public class ContainerIchorweavePouch extends Container {
+/**
+ * The Ichorweave Focus Pouch menu.
+ * <p>
+ * Ported from the 1.12.2 {@code Container}. Legacy baubles/Curios slot APIs no longer exist in this
+ * stack, so the pouch is located inside the player's main inventory instead of an accessory slot
+ * (see {@link mod.emt.kami.client.KeyBindingsKami} for the matching use check).
+ */
+public class ContainerIchorweavePouch extends AbstractContainerMenu {
+    /** The pouch inventory occupies slots [0, POUCH_SLOTS), the player inventory follows. */
+    public static final int POUCH_SLOTS = PouchStackHandler.SLOTS;
+
     private final ItemStack pouchStack;
+    private final PouchStackHandler pouchHandler;
 
-    public ContainerIchorweavePouch(EntityPlayer player, ItemStack pouchStack) {
-        this.pouchStack = pouchStack;
+    /** Factory constructor used by {@link ModMenusKAMI#ICHORWEAVE_POUCH} (client and server). */
+    public ContainerIchorweavePouch(int containerId, Inventory playerInventory) {
+        super(ModMenusKAMI.ICHORWEAVE_POUCH.get(), containerId);
+        this.pouchStack = findPouch(playerInventory);
+        this.pouchHandler = new PouchStackHandler(this.pouchStack);
         this.bindPouchInventory();
-        this.bindPlayerInventory(player.inventory);
+        this.bindPlayerInventory(playerInventory);
     }
 
-    public ContainerIchorweavePouch(EntityPlayer player) {
-        IBaublesItemHandler handler = BaublesApi.getBaublesHandler(player);
-        int slot = BaublesApi.isBaubleEquipped(player, ModItemsKAMI.FOCUS_POUCH);
-        if(slot > -1) {
-            this.pouchStack = handler.getStackInSlot(slot);
-            this.bindPouchInventory();
-            this.bindPlayerInventory(player.inventory);
-        } else {
-            throw new RuntimeException("Attempted to access Ichorweave Focus Pouch Gui while pouch is not in baubles slot.");
+    private static ItemStack findPouch(Inventory playerInventory) {
+        NonNullList<ItemStack> items = playerInventory.getNonEquipmentItems();
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty() && stack.is(ModItemsKAMI.FOCUS_POUCH.get())) {
+                return stack;
+            }
         }
+        return ItemStack.EMPTY;
     }
 
-    public void bindPouchInventory() {
-        PouchStackHandler handler = new PouchStackHandler(this.pouchStack);
-        for(int slot = 0; slot < handler.getSlots(); slot++) {
+    public ItemStack getPouchStack() {
+        return this.pouchStack;
+    }
+
+    private void bindPouchInventory() {
+        for (int slot = 0; slot < this.pouchHandler.getSlots(); slot++) {
             int xIndex = slot % 13;
             int yIndex = slot / 13;
-            this.addSlotToContainer(new SlotItemHandler(handler, slot, xIndex * 18 + 12, yIndex * 18 + 8));
+            this.addSlot(new SlotItemHandler(this.pouchHandler, slot, xIndex * 18 + 12, yIndex * 18 + 8));
         }
     }
 
-    public void bindPlayerInventory(InventoryPlayer inventoryPlayer) {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 9; j++) {
-                this.addSlotToContainer(new Slot(inventoryPlayer, j + i * 9 + 9, 48 + j * 18, 177 + i * 18));
+    private void bindPlayerInventory(Inventory playerInventory) {
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 9; col++) {
+                this.addSlot(new Slot(playerInventory, col + row * 9 + 9, 48 + col * 18, 177 + row * 18));
             }
         }
 
-        for (int i = 0; i < 9; i++) {
-            if (i == inventoryPlayer.currentItem) {
-                this.addSlotToContainer(new SlotLocked(inventoryPlayer, i, 48 + i * 18, 235));
+        int selected = playerInventory.getSelectedSlot();
+        for (int col = 0; col < 9; col++) {
+            if (col == selected) {
+                this.addSlot(new SlotLocked(playerInventory, col, 48 + col * 18, 235));
             } else {
-                this.addSlotToContainer(new Slot(inventoryPlayer, i, 48 + i * 18, 235));
+                this.addSlot(new Slot(playerInventory, col, 48 + col * 18, 235));
             }
         }
     }
 
     @Override
-    public boolean canInteractWith(@NotNull EntityPlayer playerIn) {
-        return true;
-    }
+    public @NotNull ItemStack quickMoveStack(@NotNull Player player, int index) {
+        ItemStack result = ItemStack.EMPTY;
+        Slot slot = this.slots.get(index);
 
-    @Override
-    public @NotNull ItemStack transferStackInSlot(@NotNull EntityPlayer playerIn, int index) {
-        ItemStack stack = ItemStack.EMPTY;
-        Slot slot = this.inventorySlots.get(index);
+        if (slot != null && slot.hasItem()) {
+            ItemStack slotStack = slot.getItem();
+            result = slotStack.copy();
 
-        if (slot != null && slot.getHasStack()) {
-            ItemStack slotStack = slot.getStack();
-            stack = slotStack.copy();
-
-            if (index < 117) {
-                if (!this.mergeItemStack(slotStack, 117, this.inventorySlots.size(), true)) {
+            if (index < POUCH_SLOTS) {
+                if (!this.moveItemStackTo(slotStack, POUCH_SLOTS, this.slots.size(), true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (!this.mergeItemStack(slotStack, 0, 117, false)) {
+            } else if (!this.moveItemStackTo(slotStack, 0, POUCH_SLOTS, false)) {
                 return ItemStack.EMPTY;
             }
 
             if (slotStack.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+                slot.set(ItemStack.EMPTY);
             } else {
-                slot.onSlotChanged();
+                slot.setChanged();
             }
         }
 
-        return stack;
+        return result;
+    }
+
+    @Override
+    public boolean stillValid(@NotNull Player player) {
+        // The pouch is the player's own item; the menu stays valid as long as the player is alive.
+        return !this.pouchStack.isEmpty() && player.isAlive();
     }
 }

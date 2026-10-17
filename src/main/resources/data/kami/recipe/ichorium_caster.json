@@ -1,0 +1,43 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 250,
+      "aspect": "thaumaturge:auram"
+    },
+    {
+      "amount": 250,
+      "aspect": "thaumaturge:alienis"
+    },
+    {
+      "amount": 250,
+      "aspect": "thaumaturge:potentia"
+    },
+    {
+      "amount": 250,
+      "aspect": "thaumaturge:praecantatio"
+    },
+    {
+      "amount": 250,
+      "aspect": "thaumaturge:vacuos"
+    }
+  ],
+  "catalyst": "thaumaturge:wand",
+  "components": [
+    "kami:ichorium_ingot",
+    "kami:ichorium_ingot",
+    "kami:ichorweave_fabric",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "kami:ichorweave_fabric",
+    "kami:ichorweave_fabric",
+    "kami:ichorium_ingot"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:ichorium_caster"
+  },
+  "result": {
+    "id": "kami:ichorium_caster"
+  }
+}

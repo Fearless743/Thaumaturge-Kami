@@ -2,41 +2,42 @@ package mod.emt.kami.client.gui;
 
 import mod.emt.kami.Kami;
 import mod.emt.kami.inventory.containers.ContainerIchorweavePouch;
-import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.inventory.Container;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import mod.emt.kami.registry.ModMenusKAMI;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
-@SideOnly(Side.CLIENT)
-public class GuiIchorweavePouch extends GuiContainer {
-    public static final ResourceLocation TEXTURE = new ResourceLocation(Kami.MOD_ID, "textures/gui/ichorweave_pouch.png");
+@EventBusSubscriber(modid = Kami.MOD_ID, value = Dist.CLIENT)
+public class GuiIchorweavePouch extends AbstractContainerScreen<ContainerIchorweavePouch> {
+    public static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Kami.MOD_ID, "textures/gui/ichorweave_pouch.png");
 
-    public GuiIchorweavePouch(Container inventorySlotsIn) {
-        super(inventorySlotsIn);
-        this.xSize = 256;
-        this.ySize = 256;
+    public GuiIchorweavePouch(ContainerIchorweavePouch menu, Inventory inventory, Component title) {
+        super(menu, inventory, title, 256, 256);
     }
 
     public ContainerIchorweavePouch getContainer() {
-        return (ContainerIchorweavePouch) this.inventorySlots;
+        return this.menu;
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        this.mc.renderEngine.bindTexture(TEXTURE);
-        GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
-        int xStart = (this.width - this.xSize) / 2;
-        int yStart = (this.height - this.ySize) / 2;
-        GlStateManager.enableBlend();
-        drawTexturedModalRect(xStart, yStart, 0, 0, this.xSize, this.ySize);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        int xStart = (this.width - this.imageWidth) / 2;
+        int yStart = (this.height - this.imageHeight) / 2;
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, xStart, yStart, 0.0F, 0.0F,
+                this.imageWidth, this.imageHeight, 256, 256);
     }
 
-    @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        this.drawDefaultBackground();
-        super.drawScreen(mouseX, mouseY, partialTicks);
-        this.renderHoveredToolTip(mouseX, mouseY);
+    @SubscribeEvent
+    public static void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenusKAMI.ICHORWEAVE_POUCH.get(), GuiIchorweavePouch::new);
     }
 }

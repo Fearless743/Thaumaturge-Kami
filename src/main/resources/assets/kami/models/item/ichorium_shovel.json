@@ -1,6 +1,6 @@
 {
-  "parent": "item/handheld",
+  "parent": "minecraft:item/handheld",
   "textures": {
-    "layer0": "kami:items/ichorium_shovel"
+    "layer0": "kami:item/ichorium_shovel"
   }
 }

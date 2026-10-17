@@ -1,42 +1,54 @@
 package mod.emt.kami.network.packets;
 
-import baubles.api.BaublesApi;
-import io.netty.buffer.ByteBuf;
 import mod.emt.kami.Kami;
-import mod.emt.kami.handlers.GuiHandlerKami;
+import mod.emt.kami.inventory.containers.ContainerIchorweavePouch;
 import mod.emt.kami.registry.ModItemsKAMI;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-public class PacketOpenPouchGui implements IMessage {
-    public PacketOpenPouchGui() {}
+/**
+ * Serverbound packet sent when the player presses the focus pouch key or right-clicks the
+ * Ichorweave Focus Pouch. Opening the container is now handled entirely on the server via
+ * {@link net.minecraft.world.entity.player.Player#openMenu} (the old IGuiHandler is obsolete).
+ */
+public record PacketOpenPouchGui() implements CustomPacketPayload {
+    public static final PacketOpenPouchGui INSTANCE = new PacketOpenPouchGui();
+
+    public static final CustomPacketPayload.Type<PacketOpenPouchGui> TYPE =
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(Kami.MOD_ID, "open_pouch_gui"));
+
+    public static final StreamCodec<RegistryFriendlyByteBuf, PacketOpenPouchGui> STREAM_CODEC =
+            StreamCodec.unit(INSTANCE);
 
     @Override
-    public void fromBytes(ByteBuf buf) {
-
+    public CustomPacketPayload.Type<PacketOpenPouchGui> type() {
+        return TYPE;
     }
 
-    @Override
-    public void toBytes(ByteBuf buf) {
-
+    public static void handle(PacketOpenPouchGui payload, IPayloadContext context) {
+        context.enqueueWork(() -> {
+            if (!hasPouch(context.player().getInventory())) {
+                return;
+            }
+            context.player().openMenu(new SimpleMenuProvider(
+                    (containerId, inventory, player) -> new ContainerIchorweavePouch(containerId, inventory),
+                    Component.translatable("container.kami.ichorweave_pouch")));
+        });
     }
 
-    public static class MessageHandler implements IMessageHandler<PacketOpenPouchGui, IMessage> {
-        @Override
-        public IMessage onMessage(PacketOpenPouchGui message, MessageContext ctx) {
-            FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
-                EntityPlayer player = ctx.getServerHandler().player;
-                if(player != null) {
-                    int baubleSlot = BaublesApi.isBaubleEquipped(player, ModItemsKAMI.FOCUS_POUCH);
-                    if(baubleSlot > -1) {
-                        player.openGui(Kami.instance, GuiHandlerKami.ID_ICHORWEAVE_POUCH_BAUBLE, player.world, 0, 0, 0);
-                    }
-                }
-            });
-            return null;
+    private static boolean hasPouch(Inventory inventory) {
+        for (ItemStack stack : inventory.getNonEquipmentItems()) {
+            if (!stack.isEmpty() && stack.is(ModItemsKAMI.FOCUS_POUCH.get())) {
+                return true;
+            }
         }
+        return false;
     }
 }

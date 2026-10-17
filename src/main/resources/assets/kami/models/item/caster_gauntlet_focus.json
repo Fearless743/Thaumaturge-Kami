@@ -1,8 +1,9 @@
 {
 	"ambientocclusion": false,
 	"textures": {
-		"overlay": "kami:models/caster_ichorium",
-		"skin": "kami:models/caster_base"
+		"overlay": "kami:item/caster_ichorium",
+		"skin": "kami:item/caster_base",
+		"particle": "kami:item/caster_base"
 	},
 	"elements": [
 		{

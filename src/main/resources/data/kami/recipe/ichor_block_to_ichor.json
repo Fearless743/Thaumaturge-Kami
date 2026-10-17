@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "kami:ichor_stuff",
+  "ingredients": [
+    "kami:ichor_block"
+  ],
+  "result": {
+    "id": "kami:ichor",
+    "count": 9
+  }
+}

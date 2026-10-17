@@ -1,25 +1,36 @@
 package mod.emt.kami.inventory.handlers;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ICapabilitySerializable;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.ItemStackHandler;
+import com.leclowndu93150.thaumaturge.content.casters.FocusPouchItem;
+import mod.emt.kami.registry.ModItemsKAMI;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import thaumcraft.common.items.casters.ItemFocusPouch;
 
-public class PouchStackHandler extends ItemStackHandler implements ICapabilitySerializable<NBTTagCompound> {
-    public ItemStack pouchStack;
+/**
+ * Item handler backing the Ichorweave Focus Pouch.
+ * <p>
+ * The 1.12.2 version persisted its 117 slots into the item's {@code NBTTagCompound} through an
+ * {@code ICapabilitySerializable}. Modern Minecraft has no item NBT, so the inventory is stored in
+ * the stack's {@link DataComponents#CONTAINER} ({@link ItemContainerContents}) component instead:
+ * it is loaded once in the constructor and written back whenever the contents change. This is the
+ * same storage vanilla uses for shulker boxes, so the pouch is tooltip- and command-compatible.
+ */
+public class PouchStackHandler extends ItemStackHandler {
+    /** 13 columns x 9 rows, matching the legacy layout. */
+    public static final int SLOTS = 117;
+
+    private final ItemStack pouchStack;
 
     public PouchStackHandler(ItemStack pouchStack) {
-        super(117);
+        super(SLOTS);
         this.pouchStack = pouchStack;
-        NBTTagCompound invTag = this.pouchStack.getTagCompound() != null ? this.pouchStack.getTagCompound().getCompoundTag("inventory") : new NBTTagCompound();
-        this.deserializeNBT(invTag);
+        ItemContainerContents contents = pouchStack.get(DataComponents.CONTAINER);
+        if (contents != null) {
+            contents.copyInto(this.stacks);
+        }
     }
 
     public NonNullList<ItemStack> getInventory() {
@@ -28,7 +39,7 @@ public class PouchStackHandler extends ItemStackHandler implements ICapabilitySe
 
     public void setInventory(NonNullList<ItemStack> stackList) {
         int slots = Math.min(this.getSlots(), stackList.size());
-        for(int i = 0; i < slots; i++) {
+        for (int i = 0; i < slots; i++) {
             this.stacks.set(i, stackList.get(i));
         }
         this.onContentsChanged(0);
@@ -36,24 +47,15 @@ public class PouchStackHandler extends ItemStackHandler implements ICapabilitySe
 
     @Override
     public boolean isItemValid(int slot, @NotNull ItemStack stack) {
-        return !(stack.getItem() instanceof ItemFocusPouch);
+        // Pouches may not be nested inside each other.
+        return !(stack.getItem() instanceof FocusPouchItem) && !stack.is(ModItemsKAMI.FOCUS_POUCH.get());
     }
 
     @Override
     protected void onContentsChanged(int slot) {
-        this.pouchStack.setTagInfo("inventory", this.serializeNBT());
-    }
-
-    @Override
-    public boolean hasCapability(@NotNull Capability<?> capability, @Nullable EnumFacing facing) {
-        return capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY;
-    }
-
-    @Override
-    public @Nullable <T> T getCapability(@NotNull Capability<T> capability, @Nullable EnumFacing facing) {
-        if(capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(this);
+        if (this.pouchStack.isEmpty()) {
+            return;
         }
-        return null;
+        this.pouchStack.set(DataComponents.CONTAINER, ItemContainerContents.fromItems(this.stacks));
     }
 }

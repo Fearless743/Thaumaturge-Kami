@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "group": "kami:ichorium_stuff",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": "kami:ichorium_nugget"
+  },
+  "result": {
+    "id": "kami:ichorium_ingot",
+    "count": 1
+  }
+}

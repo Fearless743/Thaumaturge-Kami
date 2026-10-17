@@ -1,5 +1,5 @@
 # Future Content
-This is a list of general content that did not make the initial cut for the first release of Kami: Reborn. This is not a guarantee the content will be in future releases, but everything listed is being considered.
+This is a list of general content that did not make the initial cut for the first release of Thaumaturge Kami. This is not a guarantee the content will be in future releases, but everything listed is being considered.
 
 | Feature                          | Replacement | Description                                                                                                     |
 |:---------------------------------|:-----------:|:----------------------------------------------------------------------------------------------------------------|

@@ -1,9 +1,9 @@
-# KAMI: Reborn
+# Thaumaturge Kami
 
 [![Requires MixinBooter](https://img.shields.io/badge/Requires-MixinBooter-C48733.svg?labelColor=A45104&style=for-the-badge)](https://www.curseforge.com/minecraft/mc-mods/mixin-booter)
 [![Requires ThaumicAPI](https://img.shields.io/badge/Requires-ThaumicAPI-C48733.svg?labelColor=A45104&style=for-the-badge)](https://www.curseforge.com/minecraft/mc-mods/thaumicapi)
 
-KAMI: Reborn is a port of the KAMI content from Thaumic Tinkerer for Thaumcraft 6, and has been rewritten from the ground up. Its main focus is to introduce high-tier endgame content into the game.
+Thaumaturge Kami is a port of the KAMI content from Thaumic Tinkerer for Thaumcraft 6, and has been rewritten from the ground up. Its main focus is to introduce high-tier endgame content into the game.
 
 Unlike the original, Thaumic Tinkerer is no longer a required dependency for this mod. You can find the reborn counterpart here: [Thaumic Tinkerer: Reborn](https://www.curseforge.com/minecraft/mc-mods/thaumic-tinkerer-reborn).
 

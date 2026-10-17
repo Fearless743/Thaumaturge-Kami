@@ -1,64 +1,20 @@
 package mod.emt.kami.items.tools;
 
-import mod.emt.kami.Kami;
-import mod.emt.kami.registry.ModItemsKAMI;
-import mod.emt.kami.utils.helpers.ItemHelper;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Enchantments;
-import net.minecraft.item.EnumRarity;
-import net.minecraft.item.ItemPickaxe;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
-import net.minecraftforge.common.IRarity;
-import org.jetbrains.annotations.NotNull;
-import thaumcraft.api.items.IWarpingGear;
-import thaumcraft.common.lib.enchantment.EnumInfusionEnchantment;
+import com.leclowndu93150.thaumaturge.api.items.IWarpingGear;
+import mod.emt.kami.items.ModMaterials;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Rarity;
 
-import java.util.Objects;
-
-public class ItemIchoriumPickaxe extends ItemPickaxe implements IWarpingGear {
-    public ItemIchoriumPickaxe() {
-        this("ichorium_pickaxe");
-    }
-
-    protected ItemIchoriumPickaxe(String unlocName) {
-        super(ModItemsKAMI.MATERIAL_ICHORIUM);
-        this.setRegistryName(Kami.MOD_ID, unlocName);
-        this.setTranslationKey(Objects.requireNonNull(this.getRegistryName()).toString());
-        this.setCreativeTab(Kami.tabKAMI);
+public class ItemIchoriumPickaxe extends Item implements IWarpingGear {
+    public ItemIchoriumPickaxe(Item.Properties properties) {
+        super(ModMaterials.ICHORIUM.applyToolProperties(properties.rarity(Rarity.EPIC).fireResistant(), BlockTags.MINEABLE_WITH_PICKAXE, 1.0F, -2.8F, 0.0F));
     }
 
     @Override
-    public void getSubItems(@NotNull CreativeTabs tab, @NotNull NonNullList<ItemStack> items) {
-        if(this.isInCreativeTab(tab)) {
-            ItemStack stack = new ItemStack(this);
-            ItemHelper.setUnbreakable(stack);
-            EnumInfusionEnchantment.addInfusionEnchantment(stack, EnumInfusionEnchantment.REFINING, 4);
-            items.add(stack);
-        }
-    }
-
-    @Override
-    public boolean isEnchantable(@NotNull ItemStack stack) {
-        return true;
-    }
-
-    @Override
-    public @NotNull IRarity getForgeRarity(@NotNull ItemStack stack) {
-        return EnumRarity.EPIC;
-    }
-
-    @Override
-    public int getWarp(ItemStack itemstack, EntityPlayer player) {
+    public int warp(ItemStack stack, LivingEntity entity) {
         return 1;
-    }
-
-    //We don't want these enchantments since Ichor is completely unbreakable
-    @Override
-    public boolean canApplyAtEnchantingTable(@NotNull ItemStack stack, @NotNull Enchantment enchantment) {
-        if (enchantment == Enchantments.MENDING || enchantment == Enchantments.UNBREAKING) return false;
-        return super.canApplyAtEnchantingTable(stack, enchantment);
     }
 }

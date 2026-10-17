@@ -1,45 +1,53 @@
 /**
- * It is advised that you do not edit anything in the build.gradle; unless you are sure of what you are doing
+ * Thaumaturge Kami — NeoForge build script
+ * Targets Minecraft 26.1.2 / NeoForge 26.1.2.76 (Java 25) via ModDevGradle.
  */
-import com.gtnewhorizons.retrofuturagradle.mcp.InjectTagsTask
-import org.jetbrains.changelog.Changelog
-import org.jetbrains.gradle.ext.Gradle
-
 plugins {
     id 'java'
-    id 'java-library'
     id 'maven-publish'
-    id 'org.jetbrains.gradle.plugin.idea-ext' version '1.3'
-    id 'com.gtnewhorizons.retrofuturagradle' version '2.0.2'
-    id 'com.matthewprenger.cursegradle' version '1.4.0' apply false
-    id 'com.modrinth.minotaur' version '2.+' apply false
-    id 'org.jetbrains.changelog' version '2.5.0'
+    id 'net.neoforged.moddev' version '2.0.148'
 }
 
-apply from: 'gradle/scripts/helpers.gradle'
+// ---------------------------------------------------------------------------
+// Helpers (ported from the RFG build)
+// ---------------------------------------------------------------------------
+ext {
+    assertProperty = { String name ->
+        if (!project.hasProperty(name) || property(name).toString().isEmpty()) {
+            throw new GradleException("Property '$name' is required but not defined!")
+        }
+    }
+    propertyString = { String name ->
+        assertProperty.call(name)
+        return project.property(name).toString()
+    }
+    propertyBool = { String name, boolean defaultValue = null ->
+        if (name == null) return false
+        if (!project.hasProperty(name)) {
+            if (defaultValue != null) return defaultValue
+            throw new GradleException("Property '$name' is not defined!")
+        }
+        return Boolean.parseBoolean(project.property(name).toString())
+    }
+    propertyStringList = { String name, String delimiter = ' ' ->
+        return propertyString(name).split(delimiter).toList()
+    }
+    interpolate = { String value ->
+        def result = value
+        project.properties.each { k, v ->
+            result = result.replace("\${$k}", v?.toString() ?: '')
+        }
+        return result
+    }
+}
 
 // Early Assertions
 assertProperty 'mod_version'
 assertProperty 'root_package'
 assertProperty 'mod_id'
 assertProperty 'mod_name'
-
-assertSubProperties 'use_tags', 'tag_class_name'
-assertSubProperties 'use_access_transformer', 'access_transformer_locations'
-assertSubProperties 'use_mixins', 'mixin_booter_version', 'mixin_refmap'
-assertSubProperties 'is_coremod', 'coremod_includes_mod', 'coremod_plugin_class_name'
-assertSubProperties 'use_asset_mover', 'asset_mover_version'
-
-setDefaultProperty 'use_modern_java_syntax', false, false
-setDefaultProperty 'generate_sources_jar', true, false
-setDefaultProperty 'generate_javadocs_jar', true, false
-setDefaultProperty 'mapping_channel', true, 'stable'
-setDefaultProperty 'mapping_version', true, '39'
-setDefaultProperty 'use_dependency_at_files', true, true
-setDefaultProperty 'minecraft_username', true, 'Developer'
-setDefaultProperty 'extra_jvm_args', false, ''
-setDefaultProperty 'extra_tweak_classes', false, ''
-setDefaultProperty 'change_minecraft_sources', false, false
+assertProperty 'minecraft_version'
+assertProperty 'neoforge_version'
 
 version = propertyString('mod_version')
 group = propertyString('root_package')
@@ -48,140 +56,148 @@ base {
     archivesName.set(propertyString('mod_id'))
 }
 
-tasks.decompressDecompiledSources.enabled !propertyBool('change_minecraft_sources')
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(propertyBool('use_modern_java_syntax') ? 16 : 8))
-        // Azul covers the most platforms for Java 8 toolchains, crucially including MacOS arm64
-        vendor.set(JvmVendorSpec.AZUL)
-    }
-    if (propertyBool('generate_sources_jar')) {
-        withSourcesJar()
-    }
-    if (propertyBool('generate_javadocs_jar')) {
-        withJavadocJar()
-    }
-}
-
-configurations {
-    embed
-    implementation.extendsFrom(embed)
-}
-
-minecraft {
-    mcVersion.set('1.12.2')
-
-    mcpMappingChannel.set(propertyString('mapping_channel'))
-    mcpMappingVersion.set(propertyString('mapping_version'))
-
-    useDependencyAccessTransformers.set(propertyBool('use_dependency_at_files'))
-
-    username.set(propertyString('minecraft_username'))
-    
-    // Add any additional tweaker classes here
-    extraTweakClasses.addAll(propertyStringList('extra_tweak_classes'))
-
-    // Add various JVM arguments here for runtime
-    def args = ['-ea:' + group]
-    if (propertyBool('use_mixins')) {
-        args << '-Dmixin.hotSwap=true'
-        args << '-Dmixin.checks.interfaces=true'
-        args << '-Dmixin.debug.export=true'
-    }
-    extraRunJvmArguments.addAll(args)
-    extraRunJvmArguments.addAll(propertyStringList('extra_jvm_args'))
-
-    if (propertyBool('use_tags')) {
-        if (file('tags.properties').exists()) {
-            Properties props = new Properties().tap {  it.load(file('tags.properties').newInputStream()); it }
-            if (!props.isEmpty()) {
-                injectedTags.set(props.collectEntries { k, v -> [(k): interpolate(v)] })
-            }
-        }
-    }
-}
-
 repositories {
+    // Thaumaturge (Thaumcraft port for Minecraft 26.1)
     maven {
-        name 'CleanroomMC Maven'
-        url 'https://maven.cleanroommc.com'
+        name = 'Leclown Maven'
+        url = 'https://maven.leclowndu93150.dev/releases'
+    }
+    // Thaumaturge's published POM pulls its dev runtime mods transitively (runtime scope):
+    // Curios (a real runtime dependency) plus JEI/Jade/Sodium/one Modrinth mod for the dev client.
+    // Each lives in a different repository, so all three have to be declared for runClient to resolve.
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content { includeGroup 'maven.modrinth' }
     }
     maven {
-        url "https://maven.blamejared.com/"
+        name = 'BlameJared'
+        url = 'https://maven.blamejared.com'
+        content { includeGroup 'mezz.jei' }
     }
+    maven {
+        name = 'IllusiveC4 (Curios)'
+        url = 'https://maven.theillusivec4.top/'
+        content { includeGroup 'top.theillusivec4.curios' }
+    }
+    mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
-    if (propertyBool('use_modern_java_syntax')) {
-        annotationProcessor 'com.github.bsideup.jabel:jabel-javac-plugin:1.0.0'
-        // Workaround for https://github.com/bsideup/jabel/issues/174
-        annotationProcessor 'net.java.dev.jna:jna-platform:5.13.0'
-        compileOnly ('com.github.bsideup.jabel:jabel-javac-plugin:1.0.0') {
-            transitive = false
-        }
-        // Allow jdk.unsupported classes like sun.misc.Unsafe, workaround for JDK-8206937 and fixes crashes in tests
-        patchedMinecraft 'me.eigenraven.java8unsupported:java-8-unsupported-shim:1.0.0'
-        // Include for tests
-        testAnnotationProcessor 'com.github.bsideup.jabel:jabel-javac-plugin:1.0.0'
-        testCompileOnly('com.github.bsideup.jabel:jabel-javac-plugin:1.0.0') {
-            transitive = false // We only care about the 1 annotation class
-        }
-    }
-    if (propertyBool('use_asset_mover')) {
-        implementation "com.cleanroommc:assetmover:${propertyString('asset_mover_version')}"
-    }
-    if (propertyBool('use_mixins')) {
-        String mixin = modUtils.enableMixins("zone.rong:mixinbooter:${propertyString('mixin_booter_version')}", propertyString('mixin_refmap'))
-        api (mixin) {
-            transitive = false
-        }
-        annotationProcessor 'org.ow2.asm:asm-debug-all:5.2'
-        annotationProcessor 'com.google.guava:guava:32.1.2-jre'
-        annotationProcessor 'com.google.code.gson:gson:2.8.9'
-        annotationProcessor (mixin) {
-            transitive = false
-        }
-    }
+    // The only prerequisite: Thaumaturge replaces Thaumcraft + Thaumic API
+    implementation "com.leclowndu93150:thaumaturge-${propertyString('minecraft_version')}-neoforge:${propertyString('thaumaturge_version')}"
+
+    compileOnly 'org.jetbrains:annotations:24.1.0'
+
     if (propertyBool('enable_junit_testing')) {
         testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 }
 
-apply from: 'gradle/scripts/dependencies.gradle'
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(propertyString('java_toolchain_version')))
+    }
+    if (propertyBool('generate_sources_jar')) {
+        withSourcesJar()
+    }
+}
 
-// Adds Access Transformer files to tasks
-if (propertyBool('use_access_transformer')) {
-    for (def location : propertyStringList('access_transformer_locations')) {
-        def fileLocation = file("${projectDir}/src/main/resources/${location}")
-        if (fileLocation.exists()) {
-            tasks.deobfuscateMergedJarToSrg.accessTransformerFiles.from(fileLocation)
-            tasks.srgifyBinpatchedJar.accessTransformerFiles.from(fileLocation)
-        } else {
-            throw new GradleException("Access Transformer file [$fileLocation] does not exist!")
+sourceSets {
+    main {
+        java {
+            srcDir 'build/generated/java'
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// ModDevGradle / NeoForge
+// ---------------------------------------------------------------------------
+neoForge {
+    version = propertyString('neoforge_version')
+
+    // Access Transformers
+    if (propertyBool('use_access_transformer')) {
+        accessTransformers.from(file("src/main/resources/META-INF/${propertyString('access_transformer_locations')}"))
+    }
+    validateAccessTransformers = true
+
+    // Publishing: access transformers are stripped from the published jar? No,
+    // they are kept at META-INF/<mod_id>_at.cfg as usual.
+
+    runs {
+        client {
+            client()
+            systemProperty 'neoforge.enabledGameTestNamespaces', propertyString('mod_id')
+            programArgument '--username'
+            programArgument propertyString('minecraft_username')
+            jvmArgument '-ea:' + propertyString('root_package')
+        }
+        server {
+            server()
+            systemProperty 'neoforge.enabledGameTestNamespaces', propertyString('mod_id')
+            programArgument '--nogui'
+            jvmArgument '-ea:' + propertyString('root_package')
+        }
+    }
+
+    mods {
+        "${propertyString('mod_id')}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Tags (build-time generated constants)
+// ---------------------------------------------------------------------------
+def tagsTask = tasks.register('generateTags', Task) {
+    group = 'build'
+    description = 'Generates the Tags class from tags.properties'
+    def outputDir = layout.buildDirectory.dir('generated/java')
+    outputs.dir(outputDir)
+    if (propertyBool('use_tags') && file('tags.properties').exists()) {
+        inputs.file file('tags.properties')
+        doLast {
+            Properties props = new Properties().tap { it.load(file('tags.properties').newInputStream()) }
+            def entries = props.collectEntries { k, v -> [(k.toString()): interpolate(v.toString())] }
+            def fqcn = interpolate(propertyString('tag_class_name'))
+            def pkg = fqcn.substring(0, fqcn.lastIndexOf('.'))
+            def cls = fqcn.substring(fqcn.lastIndexOf('.') + 1)
+            def outFile = outputDir.get().file("${pkg.replace('.', '/')}/${cls}.java").asFile
+            outFile.parentFile.mkdirs()
+            outFile.text = "package ${pkg};\n\n" +
+                    "// Generated at build time from tags.properties, do not edit.\n" +
+                    "public final class ${cls} {\n" +
+                    entries.collect { k, v -> "    public static final String ${k} = \"${v}\";" }.join('\n') + "\n" +
+                    "    private ${cls}() {}\n" +
+                    "}\n"
+        }
+    }
+}
+
+compileJava.dependsOn tasks.named('generateTags')
+//generateTags writes into build/generated/java, which is a main source dir, so anything else
+//consuming the main sources (the sources jar) has to wait for it too.
+tasks.named('sourcesJar') {
+    dependsOn tasks.named('generateTags')
+}
+
+test {
+    useJUnitPlatform()
+    if (propertyBool('show_testing_output')) {
+        testLogging {
+            showStandardStreams = true
         }
     }
 }
 
 processResources {
-
-    inputs.property 'mod_id', propertyString('mod_id')
-    inputs.property 'mod_name', propertyString('mod_name')
-    inputs.property 'mod_version', propertyString('mod_version')
-    inputs.property 'mod_description', propertyString('mod_description')
-    inputs.property 'mod_authors', "${propertyStringList('mod_authors', ',').join(', ')}"
-    inputs.property 'mod_credits', propertyString('mod_credits')
-    inputs.property 'mod_url', propertyString('mod_url')
-    inputs.property 'mod_update_json', propertyString('mod_update_json')
-    inputs.property 'mod_logo_path', propertyString('mod_logo_path')
-    inputs.property 'mixin_refmap', propertyString('mixin_refmap')
-    inputs.property 'mixin_package', propertyString('mixin_package')
-    inputs.property 'mixin_configs', propertyStringList('mixin_configs').join(' ')
-
-    def filterList = ['mcmod.info', 'pack.mcmeta']
-    filterList.addAll(propertyStringList('mixin_configs').collect(config -> "mixins.${config}.json" as String))
-
+    // Files whose ${...} placeholders are substituted from gradle.properties
+    def filterList = ['pack.mcmeta', 'META-INF/neoforge.mods.toml']
     filesMatching(filterList) { fcd ->
         fcd.expand(
                 'mod_id': propertyString('mod_id'),
@@ -191,172 +207,30 @@ processResources {
                 'mod_authors': "${propertyStringList('mod_authors', ',').join(', ')}",
                 'mod_credits': propertyString('mod_credits'),
                 'mod_url': propertyString('mod_url'),
-                'mod_update_json': propertyString('mod_update_json'),
                 'mod_logo_path': propertyString('mod_logo_path'),
-                'mixin_refmap': propertyString('mixin_refmap'),
-                'mixin_package': propertyString('mixin_package')
+                'minecraft_version': propertyString('minecraft_version'),
+                'neoforge_version': propertyString('neoforge_version'),
+                'minecraft_version_range': propertyString('minecraft_version_range'),
+                'neoforge_version_range': propertyString('neoforge_version_range')
         )
     }
-    
-    if (propertyBool('use_access_transformer')) {
-        rename '(.+_at.cfg)', 'META-INF/$1'
-    }
-
 }
 
 jar {
     manifest {
-        def attribute_map = [:]
-        if (propertyBool('is_coremod')) {
-            attribute_map['FMLCorePlugin'] = propertyString('coremod_plugin_class_name')
-            if (propertyBool('coremod_includes_mod')) {
-                attribute_map['FMLCorePluginContainsFMLMod'] = true
-                def currentTasks = gradle.startParameter.taskNames
-                if (currentTasks[0] == 'build' || currentTasks[0] == 'prepareObfModsFolder' || currentTasks[0] == 'runObfClient') {
-                    attribute_map['ForceLoadAsMod'] = true
-                }
-            }
-        }
-        if (propertyBool('use_access_transformer')) {
-            attribute_map['FMLAT'] = propertyString('access_transformer_locations')
-        }
-        attributes(attribute_map)
-    }
-    // Add all embedded dependencies into the jar
-    from(provider{ configurations.embed.collect {it.isDirectory() ? it : zipTree(it)} })
-}
-
-idea {
-    module {
-        inheritOutputDirs = true
-    }
-    project {
-        settings {
-            runConfigurations {
-                "1. Run Client"(Gradle) {
-                    taskNames = ["runClient"]
-                }
-                "2. Run Server"(Gradle) {
-                    taskNames = ["runServer"]
-                }
-                "3. Run Obfuscated Client"(Gradle) {
-                    taskNames = ["runObfClient"]
-                }
-                "4. Run Obfuscated Server"(Gradle) {
-                    taskNames = ["runObfServer"]
-                }
-            }
-            compiler.javac {
-                afterEvaluate {
-                    javacAdditionalOptions = "-encoding utf8"
-                    moduleJavacAdditionalOptions = [
-                            (project.name + ".main"): tasks.compileJava.options.compilerArgs.collect { '"' + it + '"' }.join(' ')
-                    ]
-                }
-            }
-        }
+        attributes([
+                'Implementation-Title': propertyString('mod_name'),
+                'Implementation-Version': propertyString('mod_version'),
+                'Implementation-Vendor': propertyString('mod_authors')
+        ])
     }
 }
 
-compileTestJava {
-    sourceCompatibility = targetCompatibility = 8
-}
-
-test {
-    useJUnitPlatform()
-    javaLauncher.set(javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(8)
-    })
-    if (propertyBool('show_testing_output')) {
-        testLogging {
-            showStandardStreams = true
-        }
-    }
-}
-
-String parserChangelog() {
-    if (!file('CHANGELOG.md').exists()) {
-        throw new GradleException('publish_with_changelog is true, but CHANGELOG.md does not exist in the workspace!')
-    }
-    String parsedChangelog = changelog.renderItem(
-            changelog.get(propertyString('mod_version')).withHeader(false).withEmptySections(false),
-            Changelog.OutputType.MARKDOWN)
-    if (parsedChangelog.isEmpty()) {
-        throw new GradleException('publish_with_changelog is true, but the changelog for the latest version is empty!')
-    }
-    return parsedChangelog
-}
-
-tasks.register('generateMixinJson') {
-    group 'cleanroom helpers'
-    def missingConfig = propertyStringList('mixin_configs').findAll(config -> !file("src/main/resources/mixins.${config}.json").exists())
-    onlyIf {
-        if (propertyBool('use_mixins') && propertyBool('generate_mixins_json')) {
-            return !missingConfig.empty
-        }
-        return false
-    }
-    doLast {
-        for (String mixinConfig : missingConfig) {
-            def file = file("src/main/resources/mixins.${mixinConfig}.json")
-            file << """{\n\t"package": "",\n\t"required": true,\n\t"refmap": "${propertyString('mixin_refmap')}",\n\t"target": "@env(DEFAULT)",\n\t"minVersion": "0.8.5",\n\t"compatibilityLevel": "JAVA_8",\n\t"mixins": [],\n\t"server": [],\n\t"client": []\n}"""
-        }
-    }
+tasks.withType(Javadoc).configureEach {
+    options.encoding = 'UTF-8'
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
-    if (propertyBool('use_modern_java_syntax')) {
-        if (it.name in ['compileMcLauncherJava', 'compilePatchedMcJava']) {
-            return
-        }
-        sourceCompatibility = 17
-        options.release.set(8)
-        javaCompiler.set(javaToolchains.compilerFor {
-            languageVersion.set(JavaLanguageVersion.of(16))
-            vendor.set(JvmVendorSpec.AZUL)
-        })
-    }
+    options.compilerArgs += ['-Xmaxerrs', '10000']
 }
-
-tasks.register('cleanroomAfterSync') {
-    group 'cleanroom helpers'
-    dependsOn 'injectTags', 'generateMixinJson'
-}
-
-if (propertyBool('use_modern_java_syntax')) {
-    tasks.withType(Javadoc).configureEach {
-        sourceCompatibility = 17
-    }
-}
-
-tasks.named('injectTags', InjectTagsTask).configure {
-    onlyIf {
-        return propertyBool('use_tags') && !it.getTags().get().isEmpty()
-    }
-    it.outputClassName.set(propertyString('tag_class_name'))
-}
-
-tasks.named('prepareObfModsFolder').configure {
-    finalizedBy 'prioritizeCoremods'
-}
-
-tasks.register('prioritizeCoremods') {
-    dependsOn 'prepareObfModsFolder'
-    doLast {
-        fileTree('run/obfuscated').forEach {
-            if (it.isFile() && it.name =~ '(mixinbooter|configanytime)(-)([0-9])+\\.+([0-9])+(.jar)') {
-                it.renameTo(new File(it.parentFile, "!${it.name}"))
-            }
-        }
-    }
-}
-
-idea.project.settings {
-    taskTriggers {
-        afterSync 'cleanroomAfterSync'
-    }
-}
-
-apply from: 'gradle/scripts/publishing.gradle'
-apply from: 'gradle/scripts/extra.gradle'

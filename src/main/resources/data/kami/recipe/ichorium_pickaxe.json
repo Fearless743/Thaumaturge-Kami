@@ -1,0 +1,28 @@
+{
+  "type": "thaumaturge:arcane_workbench_shaped",
+  "crystals": [
+    {
+      "amount": 8,
+      "aspect": "thaumaturge:ignis"
+    }
+  ],
+  "key": {
+    "I": "kami:ichorium_ingot",
+    "B": "kami:blessed_silverwood_rod"
+  },
+  "pattern": [
+    "III",
+    " B ",
+    " B "
+  ],
+  "research": {
+    "entry": "kami:ichorium_tools"
+  },
+  "result": {
+    "id": "kami:ichorium_pickaxe",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  },
+  "vis": 250
+}

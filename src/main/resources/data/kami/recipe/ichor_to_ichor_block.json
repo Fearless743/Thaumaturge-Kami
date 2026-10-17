@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "kami:ichor_stuff",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": "kami:ichor"
+  },
+  "result": {
+    "id": "kami:ichor_block",
+    "count": 1
+  }
+}

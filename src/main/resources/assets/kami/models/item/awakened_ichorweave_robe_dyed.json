@@ -1,7 +1,7 @@
 {
-  "parent": "item/generated",
+  "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "kami:items/awakened_ichorweave_robe_dyed_overlay",
-    "layer1": "kami:items/awakened_ichorweave_robe_dyed"
+    "layer0": "kami:item/awakened_ichorweave_robe_dyed_overlay",
+    "layer1": "kami:item/awakened_ichorweave_robe_dyed"
   }
 }

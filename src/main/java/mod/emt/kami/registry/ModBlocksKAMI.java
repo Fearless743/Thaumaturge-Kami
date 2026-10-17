@@ -1,22 +1,21 @@
 package mod.emt.kami.registry;
 
+import mod.emt.kami.Kami;
 import mod.emt.kami.blocks.BlockMaterial;
-import net.minecraft.block.Block;
-import net.minecraft.block.SoundType;
-import net.minecraft.block.material.MapColor;
-import net.minecraft.block.material.Material;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.material.MapColor;
+import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.util.ArrayList;
-import java.util.List;
+public final class ModBlocksKAMI {
+    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Kami.MOD_ID);
 
-public class ModBlocksKAMI {
-    public static Block ICHOR_BLOCK;
-    public static Block ICHORIUM_BLOCK;
+    //registerBlock (rather than register) injects the block's registry id into the properties,
+    //which BlockBehaviour dereferences when it builds its drop table.
+    public static final DeferredBlock<BlockMaterial> ICHOR_BLOCK = BLOCKS.registerBlock("ichor_block",
+            BlockMaterial::new, properties -> properties.mapColor(MapColor.GOLD).strength(5.0F).sound(SoundType.METAL).requiresCorrectToolForDrops());
+    public static final DeferredBlock<BlockMaterial> ICHORIUM_BLOCK = BLOCKS.registerBlock("ichorium_block",
+            BlockMaterial::new, properties -> properties.mapColor(MapColor.GOLD).strength(5.0F).sound(SoundType.METAL).requiresCorrectToolForDrops());
 
-    public static final List<Block> MOD_BLOCKS = new ArrayList<>();
-
-    public static void initBlocks() {
-        MOD_BLOCKS.add(ICHOR_BLOCK = new BlockMaterial("ichor_block", Material.IRON, MapColor.GOLD, 5.0F, SoundType.METAL, "blockIchor"));
-        MOD_BLOCKS.add(ICHORIUM_BLOCK = new BlockMaterial("ichorium_block", Material.IRON, MapColor.GOLD, 5.0F, SoundType.METAL, "blockIchorium"));
-    }
+    private ModBlocksKAMI() {}
 }

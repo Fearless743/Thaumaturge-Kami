@@ -3,177 +3,217 @@ package mod.emt.kami.items.tools;
 import com.google.common.collect.ImmutableList;
 import mod.emt.kami.api.item.IAreaBreakTool;
 import mod.emt.kami.entities.EntityThrownAxe;
+import mod.emt.kami.registry.ModDataComponentsKAMI;
 import mod.emt.kami.registry.ModSoundsKAMI;
 import mod.emt.kami.utils.helpers.HarvestHelper;
 import mod.emt.kami.utils.helpers.PlayerHelper;
 import mod.emt.kami.utils.helpers.TreeHelper;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
-import net.minecraft.entity.effect.EntityLightningBolt;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.EnumAction;
-import net.minecraft.item.ItemBow;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LightningBolt;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUseAnimation;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 
-import java.util.List;
+import java.util.Locale;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
+/**
+ * The Awakened Ichorium Axe. It can be charged and thrown like a boomerang ({@link EntityThrownAxe})
+ * and, while sneaking is not held, fells trees and sweeps a small 3x3 area of logs.
+ *
+ * <p>The legacy {@code onBlockStartBreak} hook no longer exists; the area sweep is triggered from
+ * {@link Item#mineBlock} instead, guarded by the raytraced block position so blocks broken by the
+ * sweep itself cannot recursively trigger another sweep.</p>
+ */
 public class ItemAwakenedAxe extends ItemIchoriumAxe implements IAreaBreakTool {
-    public static BiConsumer<EntityThrownAxe, EntityLivingBase> DAMAGE_CONSUMER = (entityAxe, hitEntity) -> {
-        if(!entityAxe.world.isRemote && hitEntity != null) {
-            hitEntity.attackEntityFrom(DamageSource.causeThrownDamage(entityAxe, entityAxe.owner), entityAxe.getDamage());
+    public static final int THROW_TICKS = 72000;
+
+    public static BiConsumer<EntityThrownAxe, LivingEntity> DAMAGE_CONSUMER = (entityAxe, hitEntity) -> {
+        if (!entityAxe.level().isClientSide() && hitEntity != null) {
+            hitEntity.hurtServer((ServerLevel) entityAxe.level(),
+                    entityAxe.damageSources().thrown(entityAxe, entityAxe.getOwner()), entityAxe.getDamage());
         }
     };
-    public static BiConsumer<EntityThrownAxe, EntityLivingBase> LIGHTNING_CONSUMER = (entityAxe, hitEntity) -> {
+    public static BiConsumer<EntityThrownAxe, LivingEntity> LIGHTNING_CONSUMER = (entityAxe, hitEntity) -> {
+        if (!(entityAxe.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        double x = hitEntity != null ? hitEntity.getX() : entityAxe.getX();
+        double y = hitEntity != null ? hitEntity.getY() : entityAxe.getY();
+        double z = hitEntity != null ? hitEntity.getZ() : entityAxe.getZ();
         if (hitEntity != null) {
-            hitEntity.attackEntityFrom(DamageSource.LIGHTNING_BOLT, entityAxe.getDamage() - 5.0f);
-            entityAxe.world.spawnEntity(new EntityLightningBolt(entityAxe.world, hitEntity.posX, hitEntity.posY, hitEntity.posZ, false));
-        } else {
-            entityAxe.world.spawnEntity(new EntityLightningBolt(entityAxe.world, entityAxe.posX, entityAxe.posY, entityAxe.posZ, false));
+            hitEntity.hurtServer(serverLevel, serverLevel.damageSources().lightningBolt(), entityAxe.getDamage() - 5.0F);
+        }
+        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(serverLevel, EntitySpawnReason.TRIGGERED);
+        if (bolt != null) {
+            bolt.snapTo(x, y, z);
+            serverLevel.addFreshEntity(bolt);
         }
     };
-    public static BiConsumer<EntityThrownAxe, EntityLivingBase> DETONATION_CONSUMER = (entityAxe, hitEntity) -> {
-        if(!entityAxe.world.isRemote) {
-            entityAxe.world.createExplosion(entityAxe.owner, entityAxe.posX, entityAxe.posY, entityAxe.posZ, entityAxe.getSpeed() * 2.0f, false);
+    public static BiConsumer<EntityThrownAxe, LivingEntity> DETONATION_CONSUMER = (entityAxe, hitEntity) -> {
+        if (!entityAxe.level().isClientSide()) {
+            entityAxe.level().explode(entityAxe.getOwner(), entityAxe.getX(), entityAxe.getY(), entityAxe.getZ(),
+                    entityAxe.getSpeed() * 2.0F, false, Level.ExplosionInteraction.BLOCK);
         }
     };
-    public static BiConsumer<EntityThrownAxe, EntityLivingBase> EXPLOSION_CONSUMER = (entityAxe, hitEntity) -> {
-        if(!entityAxe.world.isRemote) {
-            entityAxe.world.createExplosion(entityAxe.owner, entityAxe.posX, entityAxe.posY, entityAxe.posZ, entityAxe.getSpeed() * 5.0f, true);
+    public static BiConsumer<EntityThrownAxe, LivingEntity> EXPLOSION_CONSUMER = (entityAxe, hitEntity) -> {
+        if (!entityAxe.level().isClientSide()) {
+            entityAxe.level().explode(entityAxe.getOwner(), entityAxe.getX(), entityAxe.getY(), entityAxe.getZ(),
+                    entityAxe.getSpeed() * 5.0F, true, Level.ExplosionInteraction.TNT);
         }
     };
 
-    public ItemAwakenedAxe() {
-        super("awakened_ichorium_axe");
-        this.addPropertyOverride(new ResourceLocation("impact_mode"), ((stack, worldIn, entityIn) -> EnumImpactMode.getMode(stack).ordinal()));
+    public ItemAwakenedAxe(Item.Properties properties) {
+        super(properties);
     }
 
     @Override
-    public @NotNull ActionResult<ItemStack> onItemRightClick(@NotNull World world, @NotNull EntityPlayer player, @NotNull EnumHand hand) {
-        ItemStack heldStack = player.getHeldItem(hand);
-        RayTraceResult trace = PlayerHelper.rayTrace(player, 0);
-        if(player.isSneaking() && (trace == null || trace.typeOfHit == RayTraceResult.Type.MISS)) {
-            if(world.isRemote) {
-                world.playSound(player, player.getPosition(), ModSoundsKAMI.ITEM_ICHOR_TOGGLE.getSoundEvent(), SoundCategory.PLAYERS, 1.0f, 1.5f);
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        ItemStack heldStack = player.getItemInHand(hand);
+        HitResult trace = PlayerHelper.rayTrace(player, 0);
+        if (player.isShiftKeyDown() && (trace == null || trace.getType() == HitResult.Type.MISS)) {
+            if (level.isClientSide()) {
+                level.playSound(player, player.blockPosition(), ModSoundsKAMI.ITEM_ICHOR_TOGGLE.get(),
+                        SoundSource.PLAYERS, 1.0F, 1.5F);
             } else {
                 EnumImpactMode mode = EnumImpactMode.getMode(heldStack).nextMode();
                 EnumImpactMode.setMode(heldStack, mode);
-                player.sendStatusMessage(new TextComponentTranslation("tooltip.kami.tool.impact_mode." + mode).setStyle(new Style().setColor(mode.getTextColor())), true);
+                player.sendOverlayMessage(
+                        Component.translatable("tooltip.kami.tool.impact_mode." + mode)
+                                .withStyle(style -> style.withColor(mode.getTextColor())));
             }
-        } else if(hand == EnumHand.MAIN_HAND) {
-            player.setActiveHand(hand);
+            return InteractionResult.SUCCESS;
         }
-        return new ActionResult<>(EnumActionResult.SUCCESS, heldStack);
-    }
-
-    @Override
-    public void onPlayerStoppedUsing(@NotNull ItemStack stack, World worldIn, @NotNull EntityLivingBase entityLiving, int timeLeft) {
-        if (!worldIn.isRemote && entityLiving instanceof EntityPlayer) {
-            EntityPlayer player = (EntityPlayer) entityLiving;
-            int duration = this.getMaxItemUseDuration(stack) - timeLeft;
-            float velocity = ItemBow.getArrowVelocity(duration);
-
-            if(velocity >= 0.1) {
-                EntityThrownAxe entityAxe = new EntityThrownAxe(worldIn, player, stack.copy());
-                IAttributeInstance instance = player.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.ATTACK_DAMAGE);
-                if (instance != null) {
-                    entityAxe.setDamage((float) instance.getAttributeValue());
-                }
-                entityAxe.thrownFromSlot = player.inventory.currentItem;
-                entityAxe.setSpeedModifier(velocity);
-                worldIn.spawnEntity(entityAxe);
-                worldIn.playSound(null, player.getPosition(), ModSoundsKAMI.ITEM_ICHOR_THROW.getSoundEvent(), SoundCategory.PLAYERS, 3.0F, 1.0F / (itemRand.nextFloat() * 0.4F + 0.8F));
-                stack.setCount(0);
-            }
+        if (hand == InteractionHand.MAIN_HAND) {
+            return InteractionResult.CONSUME;
         }
+        return InteractionResult.PASS;
     }
 
     @Override
-    public @NotNull EnumAction getItemUseAction(@NotNull ItemStack stack) {
-        return EnumAction.BOW;
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        return ItemUseAnimation.BOW;
     }
 
     @Override
-    public int getMaxItemUseDuration(@NotNull ItemStack stack) {
-        return 72000;
+    public int getUseDuration(ItemStack stack, LivingEntity user) {
+        return THROW_TICKS;
     }
 
-    @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(@NotNull ItemStack stack, @Nullable World worldIn, @NotNull List<String> tooltip, @NotNull ITooltipFlag flagIn) {
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int remainingTime) {
+        if (!(entity instanceof Player player) || level.isClientSide()) {
+            return false;
+        }
+        int duration = this.getUseDuration(stack, player) - remainingTime;
+        float velocity = getThrowVelocity(duration);
+        if (velocity < 0.1F) {
+            return false;
+        }
+
+        EntityThrownAxe entityAxe = new EntityThrownAxe(level, player, stack.copy());
+        entityAxe.setDamage((float) player.getAttributeValue(Attributes.ATTACK_DAMAGE));
+        entityAxe.thrownFromSlot = player.getInventory().getSelectedSlot();
+        entityAxe.setSpeedModifier(velocity);
+        level.addFreshEntity(entityAxe);
+        level.playSound(null, player.blockPosition(), ModSoundsKAMI.ITEM_ICHOR_THROW.get(), SoundSource.PLAYERS,
+                3.0F, 1.0F / (level.getRandom().nextFloat() * 0.4F + 0.8F));
+        stack.setCount(0);
+        return true;
+    }
+
+    /** Mirrors the old {@code ItemBow#getArrowVelocity} charge curve. */
+    private static float getThrowVelocity(int duration) {
+        float f = duration / 20.0F;
+        f = (f * f + f * 2.0F) / 3.0F;
+        return Math.min(f, 1.0F);
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> consumer, TooltipFlag flag) {
         EnumImpactMode mode = EnumImpactMode.getMode(stack);
-        tooltip.add(mode.getTextColor() + I18n.format("tooltip.kami.tool.impact_mode." + mode));
+        consumer.accept(Component.translatable("tooltip.kami.tool.impact_mode." + mode)
+                .withStyle(style -> style.withColor(mode.getTextColor())));
+        super.appendHoverText(stack, context, display, consumer, flag);
     }
 
     @Override
-    public boolean onBlockStartBreak(@NotNull ItemStack stack, @NotNull BlockPos pos, @NotNull EntityPlayer player) {
-        if(!player.isSneaking() && stack.getItem() instanceof IAreaBreakTool && player.getHeldItemMainhand() == stack) {
-            if(TreeHelper.isTreeStructure(player.world, pos)) {
-                return TreeHelper.fellTree(stack, pos, player);
-            } else {
-                ImmutableList<BlockPos> harvestPositions = this.getBreakAreaPositions(player, stack, pos, false);
-                HarvestHelper.harvestExtraBlocks(player, stack, harvestPositions);
+    public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity owner) {
+        if (!level.isClientSide() && owner instanceof Player player && !player.isShiftKeyDown()) {
+            HitResult trace = PlayerHelper.rayTrace(player, 0);
+            if (trace instanceof BlockHitResult blockHit && blockHit.getBlockPos().equals(pos)) {
+                if (TreeHelper.isTreeStructure(level, pos)) {
+                    TreeHelper.fellTree(stack, pos, player);
+                } else {
+                    HarvestHelper.harvestExtraBlocks(player, stack,
+                            this.getBreakAreaPositions(player, stack, pos, false));
+                }
             }
         }
-        return false;
+        return super.mineBlock(stack, level, state, pos, owner);
     }
 
     @Override
-    public ImmutableList<BlockPos> getBreakAreaPositions(EntityPlayer player, ItemStack stack, BlockPos origin, boolean includeOrigin) {
-        if(!player.isSneaking() && !player.world.isAirBlock(origin)) {
-            RayTraceResult trace = PlayerHelper.rayTrace(player, 0);
-            if (trace != null && trace.typeOfHit == RayTraceResult.Type.BLOCK && trace.sideHit != null && !TreeHelper.isTreeStructure(player.world, trace.getBlockPos())) {
-                return HarvestHelper.getHarvestArea(player.world, player, trace, 3, 1, includeOrigin, true);
+    public ImmutableList<BlockPos> getBreakAreaPositions(Player player, ItemStack stack, BlockPos origin, boolean includeOrigin) {
+        if (!player.isShiftKeyDown() && !player.level().getBlockState(origin).isAir()) {
+            HitResult trace = PlayerHelper.rayTrace(player, 0);
+            if (trace instanceof BlockHitResult blockHit
+                    && !TreeHelper.isTreeStructure(player.level(), blockHit.getBlockPos())) {
+                return HarvestHelper.getHarvestArea(player.level(), player, blockHit, 3, 1, includeOrigin, true);
             }
         }
         return ImmutableList.of();
     }
 
     @Override
-    public boolean spawnDropsAtPlayer(EntityPlayer player, ItemStack stack) {
+    public boolean spawnDropsAtPlayer(Player player, ItemStack stack) {
         return true;
     }
 
     public enum EnumImpactMode {
-        DAMAGE(TextFormatting.GRAY, DAMAGE_CONSUMER),
-        LIGHTNING(TextFormatting.BLUE, LIGHTNING_CONSUMER),
-        DETONATION(TextFormatting.DARK_GREEN, DETONATION_CONSUMER),
-        EXPLOSION(TextFormatting.DARK_RED, EXPLOSION_CONSUMER);
+        DAMAGE(ChatFormatting.GRAY, DAMAGE_CONSUMER),
+        LIGHTNING(ChatFormatting.BLUE, LIGHTNING_CONSUMER),
+        DETONATION(ChatFormatting.DARK_GREEN, DETONATION_CONSUMER),
+        EXPLOSION(ChatFormatting.DARK_RED, EXPLOSION_CONSUMER);
 
-        private final TextFormatting textColor;
-        private final BiConsumer<EntityThrownAxe, EntityLivingBase> onHitConsumer;
+        private final ChatFormatting textColor;
+        private final BiConsumer<EntityThrownAxe, LivingEntity> onHitConsumer;
 
-        EnumImpactMode(TextFormatting textColor, BiConsumer<EntityThrownAxe, EntityLivingBase> onHitConsumer) {
+        EnumImpactMode(ChatFormatting textColor, BiConsumer<EntityThrownAxe, LivingEntity> onHitConsumer) {
             this.textColor = textColor;
             this.onHitConsumer = onHitConsumer;
         }
 
         @Override
         public String toString() {
-            return super.toString().toLowerCase();
+            return this.name().toLowerCase(Locale.ROOT);
         }
 
-        public TextFormatting getTextColor() {
+        public ChatFormatting getTextColor() {
             return this.textColor;
         }
 
-        public void onImpact(EntityThrownAxe entityAxe, @Nullable EntityLivingBase entityHit) {
+        public void onImpact(EntityThrownAxe entityAxe, LivingEntity entityHit) {
             this.onHitConsumer.accept(entityAxe, entityHit);
         }
 
@@ -184,13 +224,12 @@ public class ItemAwakenedAxe extends ItemIchoriumAxe implements IAreaBreakTool {
 
         public static EnumImpactMode getMode(ItemStack stack) {
             EnumImpactMode[] values = EnumImpactMode.values();
-            int ordinal = stack.getTagCompound() != null ? stack.getTagCompound().getInteger("mode") : 0;
-            ordinal = MathHelper.clamp(ordinal, 0, values.length - 1);
-            return values[ordinal];
+            int ordinal = stack.getOrDefault(ModDataComponentsKAMI.IMPACT_MODE.get(), 0);
+            return values[Mth.clamp(ordinal, 0, values.length - 1)];
         }
 
         public static void setMode(ItemStack stack, EnumImpactMode mode) {
-            stack.setTagInfo("mode", new NBTTagInt(mode.ordinal()));
+            stack.set(ModDataComponentsKAMI.IMPACT_MODE.get(), mode.ordinal());
         }
     }
 }

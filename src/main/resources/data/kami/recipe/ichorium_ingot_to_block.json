@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "kami:ichorium_stuff",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": "kami:ichorium_ingot"
+  },
+  "result": {
+    "id": "kami:ichorium_block",
+    "count": 1
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 100,
+      "aspect": "thaumaturge:aer"
+    },
+    {
+      "amount": 100,
+      "aspect": "thaumaturge:terra"
+    },
+    {
+      "amount": 100,
+      "aspect": "thaumaturge:ignis"
+    },
+    {
+      "amount": 100,
+      "aspect": "thaumaturge:metallum"
+    },
+    {
+      "amount": 100,
+      "aspect": "thaumaturge:aqua"
+    }
+  ],
+  "catalyst": "#c:ingots/void_metal",
+  "components": [
+    "kami:ichor",
+    "thaumaturge:phial",
+    "thaumaturge:salis_mundus",
+    "thaumaturge:phial"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:ichorium"
+  },
+  "result": {
+    "id": "kami:ichorium_ingot"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 150,
+      "aspect": "thaumaturge:aer"
+    },
+    {
+      "amount": 150,
+      "aspect": "thaumaturge:fabrico"
+    },
+    {
+      "amount": 150,
+      "aspect": "thaumaturge:alienis"
+    },
+    {
+      "amount": 150,
+      "aspect": "thaumaturge:humanus"
+    },
+    {
+      "amount": 150,
+      "aspect": "thaumaturge:vacuos"
+    }
+  ],
+  "catalyst": "thaumaturge:focus_pouch",
+  "components": [
+    "kami:ichorium_ingot",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "kami:ichorweave_fabric",
+    "kami:ichorweave_fabric",
+    "kami:ichorweave_fabric",
+    "thaumaturge:hungry_chest",
+    "minecraft:ender_chest"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:bottomless_pouch"
+  },
+  "result": {
+    "id": "kami:focus_pouch"
+  }
+}

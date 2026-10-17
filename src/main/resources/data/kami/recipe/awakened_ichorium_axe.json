@@ -1,0 +1,46 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:perditio"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:motus"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:ordo"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:herba"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:instrumentum"
+    }
+  ],
+  "catalyst": "kami:ichorium_axe",
+  "components": [
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:awakened_ichorium_axe"
+  },
+  "result": {
+    "id": "kami:awakened_ichorium_axe",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  }
+}

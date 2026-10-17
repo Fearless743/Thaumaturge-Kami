@@ -1,61 +1,41 @@
 package mod.emt.kami;
 
-import mod.emt.kami.proxy.CommonProxy;
+import mod.emt.kami.config.ConfigHandlerKami;
 import mod.emt.kami.registry.CreativeTabsKAMI;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import mod.emt.kami.registry.ModBlocksKAMI;
+import mod.emt.kami.registry.ModDataComponentsKAMI;
+import mod.emt.kami.registry.ModEntitiesKAMI;
+import mod.emt.kami.registry.ModItemsKAMI;
+import mod.emt.kami.registry.ModMenusKAMI;
+import mod.emt.kami.registry.ModRecipeTypesKAMI;
+import mod.emt.kami.registry.ModSoundsKAMI;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(
-        modid = Kami.MOD_ID,
-        name = Kami.MOD_NAME,
-        version = Kami.MOD_VERSION,
-        dependencies = Kami.DEPENDENCIES
-)
+@Mod(Kami.MOD_ID)
 public class Kami {
     public static final String MOD_ID = Tags.MOD_ID;
     public static final String MOD_NAME = Tags.MOD_NAME;
     public static final String MOD_VERSION = Tags.VERSION;
-    public static final String DEPENDENCIES = "required-after:thaumcraft" +
-            ";required-after:thaumicapi" +
-            ";after:thaumicaugmentation" +
-            ";after:tconstruct" +
-            ";after:conarm";
+    public static final Logger LOGGER = LogManager.getLogger(MOD_NAME);
 
-    public static final String CLIENT_PROXY = "mod.emt.kami.proxy.ClientProxy";
-    public static final String COMMON_PROXY = "mod.emt.kami.proxy.CommonProxy";
+    public Kami(IEventBus modEventBus, Dist dist, ModContainer modContainer) {
+        ModSoundsKAMI.SOUNDS.register(modEventBus);
+        ModBlocksKAMI.BLOCKS.register(modEventBus);
+        ModItemsKAMI.ITEMS.register(modEventBus);
+        CreativeTabsKAMI.TABS.register(modEventBus);
+        ModEntitiesKAMI.ENTITY_TYPES.register(modEventBus);
+        ModRecipeTypesKAMI.RECIPE_SERIALIZERS.register(modEventBus);
+        ModDataComponentsKAMI.DATA_COMPONENTS.register(modEventBus);
+        ModMenusKAMI.register(modEventBus);
 
-    public static final CreativeTabs tabKAMI = new CreativeTabsKAMI(CreativeTabs.CREATIVE_TAB_ARRAY.length, "KamiTab");
+        modContainer.registerConfig(ModConfig.Type.COMMON, ConfigHandlerKami.SPEC);
 
-    public static final Logger LOGGER = LogManager.getLogger(Kami.MOD_NAME);
-
-    @Mod.Instance(MOD_ID)
-    public static Kami instance;
-
-    @SidedProxy(clientSide = CLIENT_PROXY, serverSide = COMMON_PROXY)
-    public static CommonProxy proxy;
-
-    @Mod.EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
-        LOGGER.info("Starting " + MOD_NAME);
-        proxy.preInit();
-        LOGGER.debug("Finished preInit phase.");
-    }
-
-    @Mod.EventHandler
-    public void init(FMLInitializationEvent event) {
-        proxy.init();
-        LOGGER.debug("Finished init phase.");
-    }
-
-    @Mod.EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
-        proxy.postInit();
-        LOGGER.debug("Finished postInit phase.");
+        LOGGER.info("{} {} initialized", MOD_NAME, MOD_VERSION);
     }
 }

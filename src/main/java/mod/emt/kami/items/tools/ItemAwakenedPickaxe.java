@@ -2,137 +2,153 @@ package mod.emt.kami.items.tools;
 
 import com.google.common.collect.ImmutableList;
 import mod.emt.kami.api.item.IAreaBreakTool;
+import mod.emt.kami.registry.ModDataComponentsKAMI;
 import mod.emt.kami.registry.ModSoundsKAMI;
 import mod.emt.kami.utils.helpers.HarvestHelper;
 import mod.emt.kami.utils.helpers.PlayerHelper;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.EnumAction;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagInt;
-import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextComponentTranslation;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import thaumcraft.client.fx.FXDispatcher;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUseAnimation;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 
-import java.util.List;
+import java.util.Locale;
+import java.util.function.Consumer;
 
+/**
+ * The Awakened Ichorium Pickaxe. Charge it to mine a cube of blocks whose depth grows with the
+ * charge time, and use the selected area size for the footprint. Also sweeps a small area around
+ * any single block it breaks.
+ *
+ * <p>The legacy {@code onUpdate} charge feedback became {@link #inventoryTick} (server-only) and
+ * the Thaumcraft {@code FXDispatcher} charge particles were dropped as there is no Thaumaturge
+ * equivalent.</p>
+ */
 public class ItemAwakenedPickaxe extends ItemIchoriumPickaxe implements IAreaBreakTool {
     public static final int MAX_DEPTH = 15;
+    public static final int USE_TICKS = 72000;
 
-    public ItemAwakenedPickaxe() {
-        super("awakened_ichorium_pickaxe");
-        this.addPropertyOverride(new ResourceLocation("aoe_mode"), ((stack, worldIn, entityIn) -> EnumAoeMode.getMode(stack).ordinal()));
+    public ItemAwakenedPickaxe(Item.Properties properties) {
+        super(properties);
     }
 
     @Override
-    public void onUpdate(@NotNull ItemStack stack, @NotNull World worldIn, @NotNull Entity entityIn, int itemSlot, boolean isSelected) {
-        if(entityIn instanceof EntityPlayer && !entityIn.world.isRemote) {
-            EntityPlayer player = (EntityPlayer) entityIn;
-            if(player.getActiveItemStack() == stack) {
-                int duration = player.getItemInUseMaxCount();
-                int stages = Math.min(MAX_DEPTH, duration / 10);
-                if(stages > 0 && duration % 10 == 0) {
-                    EnumAoeMode mode = EnumAoeMode.getMode(stack);
-                    player.sendStatusMessage(new TextComponentTranslation("tooltip.kami.tool.dig_depth", stages).setStyle(new Style().setColor(mode.getTextColor())), true);
-                }
+    public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, EquipmentSlot slot) {
+        if (entity instanceof Player player && player.getUseItem() == stack && player.getUseItemRemainingTicks() > 0) {
+            int duration = player.getTicksUsingItem();
+            int stages = Math.min(MAX_DEPTH, duration / 10);
+            if (stages > 0 && duration % 10 == 0) {
+                EnumAoeMode mode = EnumAoeMode.getMode(stack);
+                player.sendOverlayMessage(
+                        Component.translatable("tooltip.kami.tool.dig_depth", stages)
+                                .withStyle(style -> style.withColor(mode.getTextColor())));
             }
         }
     }
 
     @Override
-    public @NotNull ActionResult<ItemStack> onItemRightClick(@NotNull World worldIn, @NotNull EntityPlayer playerIn, @NotNull EnumHand handIn) {
-        ItemStack heldStack = playerIn.getHeldItem(handIn);
-        RayTraceResult trace = PlayerHelper.rayTrace(playerIn, 0);
-        if(playerIn.isSneaking() && (trace == null || trace.typeOfHit == RayTraceResult.Type.MISS)) {
-            if(worldIn.isRemote) {
-                worldIn.playSound(playerIn, playerIn.getPosition(), ModSoundsKAMI.ITEM_ICHOR_TOGGLE.getSoundEvent(), SoundCategory.PLAYERS, 1.0f, 1.5f);
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        ItemStack heldStack = player.getItemInHand(hand);
+        HitResult trace = PlayerHelper.rayTrace(player, 0);
+        if (player.isShiftKeyDown() && (trace == null || trace.getType() == HitResult.Type.MISS)) {
+            if (level.isClientSide()) {
+                level.playSound(player, player.blockPosition(), ModSoundsKAMI.ITEM_ICHOR_TOGGLE.get(),
+                        SoundSource.PLAYERS, 1.0F, 1.5F);
             } else {
                 EnumAoeMode mode = EnumAoeMode.getMode(heldStack).nextMode();
                 EnumAoeMode.setMode(heldStack, mode);
-                playerIn.sendStatusMessage(new TextComponentTranslation("tooltip.kami.tool.aoe_mode", mode.getBreakAreaSize()).setStyle(new Style().setColor(mode.getTextColor())), true);
+                player.sendOverlayMessage(
+                        Component.translatable("tooltip.kami.tool.aoe_mode", mode.getBreakAreaSize())
+                                .withStyle(style -> style.withColor(mode.getTextColor())));
             }
-        } else {
-            playerIn.setActiveHand(handIn);
+            return InteractionResult.SUCCESS;
         }
-        return new ActionResult<>(EnumActionResult.SUCCESS, heldStack);
+        if (hand == InteractionHand.MAIN_HAND) {
+            return InteractionResult.CONSUME;
+        }
+        return InteractionResult.PASS;
     }
 
     @Override
-    public void onPlayerStoppedUsing(@NotNull ItemStack stack, @NotNull World worldIn, @NotNull EntityLivingBase entityLiving, int timeLeft) {
-        int duration = stack.getMaxItemUseDuration() - timeLeft;
-        if(entityLiving instanceof EntityPlayer && duration > 10) {
-            EntityPlayer player = (EntityPlayer) entityLiving;
-            RayTraceResult trace = PlayerHelper.rayTrace(player, 0);
-            if (trace != null && trace.typeOfHit == RayTraceResult.Type.BLOCK && trace.sideHit != null) {
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int remainingTime) {
+        int duration = this.getUseDuration(stack, entity) - remainingTime;
+        if (entity instanceof Player player && duration > 10) {
+            HitResult trace = PlayerHelper.rayTrace(player, 0);
+            if (trace instanceof BlockHitResult blockHit) {
                 int diameter = this.getBreakAreaSize(stack);
                 int depth = Math.min(MAX_DEPTH, duration / 10);
-                ImmutableList<BlockPos> harvestPositions = HarvestHelper.getHarvestArea(player.world, player, trace, diameter, depth, true, false);
-                if(worldIn.isRemote) {
-                    for(BlockPos pos : harvestPositions) {
-                        assert stack.getTagCompound() != null;
-                        int mode = stack.getTagCompound().getInteger("mode");
-                        FXDispatcher.INSTANCE.drawBamf(pos, mode == 3 ? 16719133 : mode == 2 ? 40960 : mode == 1 ? 37119 : 7500402, true, true, trace.sideHit);
-                    }
-                }
-                worldIn.playSound(null, player.getPosition(), ModSoundsKAMI.ITEM_ICHOR_DIG.getSoundEvent(), SoundCategory.PLAYERS, 1.0f, 1.0f);
+                ImmutableList<BlockPos> harvestPositions =
+                        HarvestHelper.getHarvestArea(level, player, blockHit, diameter, depth, true, false);
+                level.playSound(null, player.blockPosition(), ModSoundsKAMI.ITEM_ICHOR_DIG.get(),
+                        SoundSource.PLAYERS, 1.0F, 1.0F);
                 HarvestHelper.harvestExtraBlocks(player, stack, harvestPositions);
+                return true;
             }
-        }
-    }
-
-    @Override
-    public @NotNull EnumAction getItemUseAction(@NotNull ItemStack stack) {
-        return EnumAction.BOW;
-    }
-
-    @Override
-    public int getMaxItemUseDuration(@NotNull ItemStack stack) {
-        return 72000;
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void addInformation(@NotNull ItemStack stack, @Nullable World worldIn, @NotNull List<String> tooltip, @NotNull ITooltipFlag flagIn) {
-        EnumAoeMode mode = EnumAoeMode.getMode(stack);
-        tooltip.add(mode.getTextColor() + I18n.format("tooltip.kami.tool.aoe_mode", mode.getBreakAreaSize()));
-    }
-
-    @Override
-    public boolean onBlockStartBreak(@NotNull ItemStack stack, @NotNull BlockPos pos, @NotNull EntityPlayer player) {
-        if(stack.getItem() instanceof IAreaBreakTool && player.getHeldItemMainhand() == stack) {
-            ImmutableList<BlockPos> harvestPositions = this.getBreakAreaPositions(player, stack, pos, false);
-            HarvestHelper.harvestExtraBlocks(player, stack, harvestPositions);
         }
         return false;
     }
 
     @Override
-    public ImmutableList<BlockPos> getBreakAreaPositions(EntityPlayer player, ItemStack stack, BlockPos origin, boolean includeOrigin) {
-        if(!player.isSneaking() && !player.world.isAirBlock(origin)) {
-            RayTraceResult trace = PlayerHelper.rayTrace(player, 0);
-            if (trace != null && trace.typeOfHit == RayTraceResult.Type.BLOCK && trace.sideHit != null) {
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        return ItemUseAnimation.BOW;
+    }
+
+    @Override
+    public int getUseDuration(ItemStack stack, LivingEntity user) {
+        return USE_TICKS;
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> consumer, TooltipFlag flag) {
+        EnumAoeMode mode = EnumAoeMode.getMode(stack);
+        consumer.accept(Component.translatable("tooltip.kami.tool.aoe_mode", mode.getBreakAreaSize())
+                .withStyle(style -> style.withColor(mode.getTextColor())));
+        super.appendHoverText(stack, context, display, consumer, flag);
+    }
+
+    @Override
+    public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity owner) {
+        if (!level.isClientSide() && owner instanceof Player player && !player.isShiftKeyDown()) {
+            HitResult trace = PlayerHelper.rayTrace(player, 0);
+            if (trace instanceof BlockHitResult blockHit && blockHit.getBlockPos().equals(pos)) {
+                HarvestHelper.harvestExtraBlocks(player, stack,
+                        this.getBreakAreaPositions(player, stack, pos, false));
+            }
+        }
+        return super.mineBlock(stack, level, state, pos, owner);
+    }
+
+    @Override
+    public ImmutableList<BlockPos> getBreakAreaPositions(Player player, ItemStack stack, BlockPos origin, boolean includeOrigin) {
+        if (!player.isShiftKeyDown() && !player.level().getBlockState(origin).isAir()) {
+            HitResult trace = PlayerHelper.rayTrace(player, 0);
+            if (trace instanceof BlockHitResult blockHit) {
                 int diameter = this.getBreakAreaSize(stack);
-                return HarvestHelper.getHarvestArea(player.world, player, trace, diameter, 1, includeOrigin, false);
+                return HarvestHelper.getHarvestArea(player.level(), player, blockHit, diameter, 1, includeOrigin, false);
             }
         }
         return ImmutableList.of();
     }
 
     @Override
-    public boolean spawnDropsAtPlayer(EntityPlayer player, ItemStack stack) {
+    public boolean spawnDropsAtPlayer(Player player, ItemStack stack) {
         return true;
     }
 
@@ -141,29 +157,29 @@ public class ItemAwakenedPickaxe extends ItemIchoriumPickaxe implements IAreaBre
     }
 
     public enum EnumAoeMode {
-        ONE(1, TextFormatting.GRAY),
-        THREE(3, TextFormatting.BLUE),
-        FIVE(5, TextFormatting.DARK_GREEN),
-        SEVEN(7, TextFormatting.DARK_RED);
+        ONE(1, ChatFormatting.GRAY),
+        THREE(3, ChatFormatting.BLUE),
+        FIVE(5, ChatFormatting.DARK_GREEN),
+        SEVEN(7, ChatFormatting.DARK_RED);
 
         private final int breakAreaSize;
-        private final TextFormatting textColor;
+        private final ChatFormatting textColor;
 
-        EnumAoeMode(int breakAreaSize, TextFormatting textColor) {
+        EnumAoeMode(int breakAreaSize, ChatFormatting textColor) {
             this.breakAreaSize = breakAreaSize;
             this.textColor = textColor;
         }
 
         @Override
         public String toString() {
-            return super.toString().toLowerCase();
+            return this.name().toLowerCase(Locale.ROOT);
         }
 
         public int getBreakAreaSize() {
             return this.breakAreaSize;
         }
 
-        public TextFormatting getTextColor() {
+        public ChatFormatting getTextColor() {
             return this.textColor;
         }
 
@@ -174,13 +190,12 @@ public class ItemAwakenedPickaxe extends ItemIchoriumPickaxe implements IAreaBre
 
         public static EnumAoeMode getMode(ItemStack stack) {
             EnumAoeMode[] values = EnumAoeMode.values();
-            int ordinal = stack.getTagCompound() != null ? stack.getTagCompound().getInteger("mode") : 0;
-            ordinal = MathHelper.clamp(ordinal, 0, values.length - 1);
-            return values[ordinal];
+            int ordinal = stack.getOrDefault(ModDataComponentsKAMI.AOE_MODE.get(), 0);
+            return values[Mth.clamp(ordinal, 0, values.length - 1)];
         }
 
         public static void setMode(ItemStack stack, EnumAoeMode mode) {
-            stack.setTagInfo("mode", new NBTTagInt(mode.ordinal()));
+            stack.set(ModDataComponentsKAMI.AOE_MODE.get(), mode.ordinal());
         }
     }
 }

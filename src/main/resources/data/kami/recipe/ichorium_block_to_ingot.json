@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "group": "kami:ichorium_stuff",
+  "ingredients": [
+    "kami:ichorium_block"
+  ],
+  "result": {
+    "id": "kami:ichorium_ingot",
+    "count": 9
+  }
+}

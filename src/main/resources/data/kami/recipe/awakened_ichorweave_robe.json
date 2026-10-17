@@ -1,0 +1,38 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:auram"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:volatus"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:motus"
+    }
+  ],
+  "catalyst": "kami:ichorweave_robe",
+  "components": [
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:awakened_ichorweave_robe"
+  },
+  "result": {
+    "id": "kami:awakened_ichorweave_robe",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  }
+}

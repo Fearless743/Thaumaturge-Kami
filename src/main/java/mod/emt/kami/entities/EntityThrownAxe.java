@@ -1,61 +1,77 @@
 package mod.emt.kami.entities;
 
-import io.netty.buffer.ByteBuf;
 import mod.emt.kami.items.tools.ItemAwakenedAxe;
+import mod.emt.kami.registry.ModEntitiesKAMI;
+import mod.emt.kami.registry.ModItemsKAMI;
 import mod.emt.kami.registry.ModSoundsKAMI;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.EntityTracker;
-import net.minecraft.entity.effect.EntityLightningBolt;
-import net.minecraft.entity.item.EntityItem;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.projectile.EntityThrowable;
-import net.minecraft.init.Items;
-import net.minecraft.init.SoundEvents;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.datasync.DataParameter;
-import net.minecraft.network.datasync.DataSerializers;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.network.play.server.SPacketCollectItem;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.EnumParticleTypes;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
-import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
-import net.minecraftforge.items.ItemHandlerHelper;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.items.ItemHandlerHelper;
 
-import java.util.List;
-
-public class EntityThrownAxe extends EntityThrowable implements IEntityAdditionalSpawnData {
-    private static final DataParameter<ItemStack> ITEM = EntityDataManager.createKey(EntityThrownAxe.class, DataSerializers.ITEM_STACK);
+/**
+ * The thrown Awakened Ichorium Axe. Flies out, then curves back to its thrower like a boomerang.
+ * Ported from the 1.12 {@code EntityThrowable} implementation onto
+ * {@link ThrowableItemProjectile} (which owns the synced item stack).
+ */
+public class EntityThrownAxe extends ThrowableItemProjectile {
     public static final int MAX_THROW_TIME = 20;
     public static final float MAX_BOOMERANG_SPEED = 1.0F;
     public static final int BOOMERANG_DAMAGE = 10;
-    public Entity owner;
+
     public int returnTime;
     public int thrownFromSlot;
     public float damage;
     public float speed;
 
-    public EntityThrownAxe(World world, EntityLivingBase entity, ItemStack axeThrown) {
-        super(world, entity);
-        this.setAxeItem(axeThrown);
-        this.setGlowing(true);
-        this.isImmuneToFire = true;
+    public EntityThrownAxe(EntityType<EntityThrownAxe> type, Level level) {
+        super(type, level);
+        this.setGlowingTag(true);
         this.returnTime = MAX_THROW_TIME;
-        this.noClip = false;
-        this.owner = entity;
+        this.noPhysics = false;
         this.damage = BOOMERANG_DAMAGE;
         this.speed = MAX_BOOMERANG_SPEED;
     }
 
-    public EntityThrownAxe(World world) {
-        super(world);
+    public EntityThrownAxe(Level level, LivingEntity thrower, ItemStack axeThrown) {
+        super(ModEntitiesKAMI.THROWN_AWAKENED_ICHORIUM_AXE.get(), thrower, level, axeThrown);
+        this.setGlowingTag(true);
+        this.returnTime = MAX_THROW_TIME;
+        this.noPhysics = false;
+        this.damage = BOOMERANG_DAMAGE;
+        this.speed = MAX_BOOMERANG_SPEED;
+    }
+
+    @Override
+    protected Item getDefaultItem() {
+        return ModItemsKAMI.AWAKENED_ICHORIUM_AXE.get();
+    }
+
+    @Override
+    protected double getDefaultGravity() {
+        // The boomerang flies in a straight/curved line rather than falling.
+        return 0.0D;
+    }
+
+    @Override
+    public boolean fireImmune() {
+        return true;
     }
 
     public void setDamage(float damage) {
@@ -74,175 +90,148 @@ public class EntityThrownAxe extends EntityThrowable implements IEntityAdditiona
         return this.speed;
     }
 
-    @Override
-    protected void entityInit() {
-        this.getDataManager().register(ITEM, ItemStack.EMPTY);
-    }
-
     public void setAxeItem(ItemStack stack) {
-        this.getDataManager().set(ITEM, stack);
-        this.getDataManager().setDirty(ITEM);
+        this.setItem(stack);
     }
 
     public ItemStack getAxeItem() {
-        return this.getDataManager().get(ITEM);
+        return this.getItem();
     }
 
     @Override
-    public void writeSpawnData(ByteBuf data) {
-        data.writeInt(this.thrower != null ? this.thrower.getEntityId() : -1);
-    }
-
-    @Override
-    public void readSpawnData(ByteBuf data) {
-        this.owner = this.world.getEntityByID(data.readInt());
-
-        if (this.owner instanceof EntityLivingBase) {
-            this.thrower = (EntityLivingBase) this.owner;
-        }
-    }
-
-    @Override
-    public void onUpdate() {
-        if (!world.isRemote) {
-            EntityPlayer thrower = null;
-            if (this.owner instanceof EntityPlayer) thrower = (EntityPlayer) this.owner;
+    public void tick() {
+        if (!this.level().isClientSide()) {
+            Player thrower = this.getOwner() instanceof Player player ? player : null;
             if (thrower != null) {
-                if (thrower.capabilities.isCreativeMode) {
-                    ItemStack hand = thrower.inventory.mainInventory.get(thrower.inventory.currentItem);
-                    if (this.getAxeItem().isItemEqual(hand)) {
-                        thrower.inventory.mainInventory.set(thrower.inventory.currentItem, new ItemStack(Items.AIR));
+                if (thrower.getAbilities().instabuild) {
+                    int slot = thrower.getInventory().getSelectedSlot();
+                    ItemStack hand = thrower.getInventory().getItem(slot);
+                    if (ItemStack.isSameItem(this.getAxeItem(), hand)) {
+                        thrower.getInventory().setItem(slot, ItemStack.EMPTY);
                     }
                 }
 
                 if (this.returnTime == MAX_THROW_TIME) {
-                    thrower.swingArm(EnumHand.MAIN_HAND);
-                    this.shoot(thrower, thrower.rotationPitch, thrower.rotationYaw, 0.0F, this.getSpeed(), 0.0F);
+                    thrower.swing(InteractionHand.MAIN_HAND);
+                    this.shootFromRotation(thrower, thrower.getXRot(), thrower.getYRot(), 0.0F, this.getSpeed(), 0.0F);
                 }
 
                 if (this.returnTime % 3 == 0) {
-                    this.world.playSound(null, getPosition(), ModSoundsKAMI.ITEM_ICHOR_THROW.getSoundEvent(), SoundCategory.PLAYERS, 2.0F, 3.0F + 1.0F / (1.0F + getDistance(thrower) / 16));
+                    this.level().playSound(null, this.getX(), this.getY(), this.getZ(),
+                            ModSoundsKAMI.ITEM_ICHOR_THROW.get(), SoundSource.PLAYERS, 2.0F,
+                            3.0F + 1.0F / (1.0F + this.distanceTo(thrower) / 16.0F));
                 }
 
                 this.returnTime--;
 
-                if(this.returnTime == 0) {
+                if (this.returnTime == 0) {
                     this.reverseDirection(true);
                 }
 
                 if (this.returnTime <= 0) {
-                    float currentHeading = (float) Math.atan2(this.motionZ, this.motionX);
-                    float headingToThrower = (float) Math.atan2(thrower.posZ - this.posZ, thrower.posX - this.posX);
-                    float curveScale = Math.max(0.3f, this.returnTime * 0.007f);
+                    Vec3 motion = this.getDeltaMovement();
+                    float currentHeading = (float) Math.atan2(motion.z, motion.x);
+                    float headingToThrower = (float) Math.atan2(thrower.getZ() - this.getZ(), thrower.getX() - this.getX());
+                    float curveScale = Math.max(0.3F, this.returnTime * 0.007F);
                     float newHeading = this.updateRotationRadians(currentHeading, headingToThrower, curveScale);
-                    double currentPitch = Math.atan2(this.motionY, Math.sqrt(this.motionX * this.motionX + this.motionZ * this.motionZ));
-                    double targetPitch = Math.atan2(thrower.posY + (double) thrower.getEyeHeight() - this.posY, Math.sqrt((thrower.posX - this.posX) * (thrower.posX - this.posX) + (thrower.posZ - this.posZ) * (thrower.posZ - this.posZ)));
+                    double currentPitch = Math.atan2(motion.y, Math.sqrt(motion.x * motion.x + motion.z * motion.z));
+                    double targetPitch = Math.atan2(
+                            thrower.getY() + thrower.getEyeHeight() - this.getY(),
+                            Math.sqrt((thrower.getX() - this.getX()) * (thrower.getX() - this.getX())
+                                    + (thrower.getZ() - this.getZ()) * (thrower.getZ() - this.getZ())));
                     float newPitch = this.updateRotationRadians((float) currentPitch, (float) targetPitch, curveScale * 0.3F);
-                    this.motionX = Math.cos(newHeading);
-                    this.motionZ = Math.sin(newHeading);
-                    this.motionY = Math.sin(newPitch);
-                    this.shoot(this.motionX, this.motionY, this.motionZ, this.getSpeed(), 0.0F);
+                    this.shoot(Math.cos(newHeading), Math.sin(newPitch), Math.sin(newHeading), this.getSpeed(), 0.0F);
                 }
             }
 
-            if (getRidingEntity() == null) {
-                List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(this, getEntityBoundingBox().grow(1.5D, 1.5D, 1.5D));
-                for (Entity e : entities) {
-                    if (e instanceof EntityItem) {
-                        e.startRiding(this);
-                        break;
-                    }
+            if (this.getVehicle() == null) {
+                for (Entity e : this.level().getEntities(this, this.getBoundingBox().inflate(1.5D),
+                        e -> e instanceof ItemEntity)) {
+                    e.startRiding(this);
+                    break;
                 }
             }
 
             if (this.returnTime < -100) {
-                if(this.owner instanceof EntityPlayer && this.owner.world.provider.getDimension() == this.world.provider.getDimension()) {
-                    this.returnBoomerangToPlayer((EntityPlayer) this.owner);
-                } else {
-                    this.world.spawnEntity(new EntityItem(this.world, this.posX, this.posY, this.posZ, this.getAxeItem().copy()));
+                if (this.getOwner() instanceof Player player && player.level() == this.level()) {
+                    this.returnBoomerangToPlayer(player);
+                } else if (this.level() instanceof ServerLevel serverLevel) {
+                    serverLevel.addFreshEntity(new ItemEntity(this.level(), this.getX(), this.getY(), this.getZ(),
+                            this.getAxeItem().copy()));
                 }
-                this.setDead();
+                this.discard();
             }
-
-            this.rotationPitch = this.returnTime * 50;
-            this.prevRotationPitch = (this.returnTime + 1) * 50;
         } else {
+            Vec3 motion = this.getDeltaMovement();
             for (int i = 0; i < 4; i++) {
-                this.world.spawnParticle(EnumParticleTypes.CRIT,
-                        this.posX + this.motionX * (double) i / 4.0D,
-                        this.posY + this.motionY * (double) i / 4.0D,
-                        this.posZ + this.motionZ * (double) i / 4.0D,
-                        -this.motionX, -this.motionY + 0.2D, -this.motionZ);
+                this.level().addParticle(ParticleTypes.CRIT,
+                        this.getX() + motion.x * (double) i / 4.0D,
+                        this.getY() + motion.y * (double) i / 4.0D,
+                        this.getZ() + motion.z * (double) i / 4.0D,
+                        -motion.x, -motion.y + 0.2D, -motion.z);
             }
         }
-        super.onUpdate();
+
+        super.tick();
+
+        // Legacy spin: the axe rotates about its flight axis.
+        this.xRotO = (this.returnTime + 1) * 50.0F;
+        this.setXRot(this.returnTime * 50.0F);
     }
 
     @Override
-    protected float getGravityVelocity() {
-        return 0.0F;
-    }
+    protected void onHitEntity(EntityHitResult result) {
+        super.onHitEntity(result);
+        Entity hit = result.getEntity();
+        Entity owner = this.getOwner();
 
-    @Override
-    protected void onImpact(@NotNull RayTraceResult result) {
-        if (result.typeOfHit == RayTraceResult.Type.ENTITY && result.entityHit instanceof EntityLivingBase) {
-            if (result.entityHit == getThrower() && this.returnTime <= 0 && result.entityHit instanceof EntityPlayer) {
-                EntityPlayer player = (EntityPlayer) result.entityHit;
-                this.returnBoomerangToPlayer(player);
-
-                if (this.getRidingEntity() != null) {
-                    Entity passenger = this.getRidingEntity();
-                    passenger.startRiding(this);
-                    passenger.posX = player.posX;
-                    passenger.posY = player.posY;
-                    passenger.posZ = player.posZ;
-                }
-
-                if (!this.isDead && this.world instanceof WorldServer) {
-                    this.playSound(SoundEvents.ENTITY_ITEM_PICKUP, 0.2F, ((rand.nextFloat() - rand.nextFloat()) * 0.7F + 1.0F) * 2.0F);
-                    EntityTracker entitytracker = ((WorldServer) world).getEntityTracker();
-                    entitytracker.sendToTracking(this, new SPacketCollectItem(getEntityId(), getThrower().getEntityId(), 1));
-                }
-                this.setDead();
+        if (hit == owner && this.returnTime <= 0 && owner instanceof Player player) {
+            this.returnBoomerangToPlayer(player);
+            if (this.isAlive() && this.level() instanceof ServerLevel) {
+                this.playSound(SoundEvents.ITEM_PICKUP, 0.2F,
+                        ((this.random.nextFloat() - this.random.nextFloat()) * 0.7F + 1.0F) * 2.0F);
             }
+            this.discard();
+            return;
+        }
 
-            if (result.entityHit != getThrower() && getThrower() != null) {
-                EntityLivingBase entityLiving = (EntityLivingBase) result.entityHit;
-                ItemAwakenedAxe.EnumImpactMode mode = ItemAwakenedAxe.EnumImpactMode.getMode(this.getAxeItem());
-                mode.onImpact(this, entityLiving);
-                this.getAxeItem().damageItem(1, getThrower());
-                if (this.getAxeItem().getCount() == 0) {
-                    this.world.playSound(null, getPosition(), SoundEvents.ENTITY_ITEM_BREAK, SoundCategory.PLAYERS, 1.0F, 0.8F);
-                    this.setDead();
-                }
-                this.reverseDirection(true);
+        if (hit != owner && owner != null && hit instanceof LivingEntity living) {
+            ItemAwakenedAxe.EnumImpactMode mode = ItemAwakenedAxe.EnumImpactMode.getMode(this.getAxeItem());
+            mode.onImpact(this, living);
+
+            ItemStack axe = this.getAxeItem();
+            if (owner instanceof LivingEntity thrower && this.level() instanceof ServerLevel serverLevel) {
+                axe.hurtAndBreak(1, serverLevel, thrower, item -> this.level().playSound(null,
+                        this.getX(), this.getY(), this.getZ(), SoundEvents.ITEM_BREAK.value(),
+                        SoundSource.PLAYERS, 1.0F, 0.8F));
             }
-        } else {
-            BlockPos blockPos = result.getBlockPos();
-            IBlockState blockState = world.getBlockState(blockPos);
-            boolean solid = blockState.getCollisionBoundingBox(world, blockPos) != null;
-            if (!this.noClip && solid) {
-                ItemAwakenedAxe.EnumImpactMode mode = ItemAwakenedAxe.EnumImpactMode.getMode(this.getAxeItem());
-                mode.onImpact(this, null);
-                this.reverseDirection(true);
+            if (axe.isEmpty()) {
+                this.discard();
             }
+            this.reverseDirection(true);
         }
     }
 
     @Override
-    public void onStruckByLightning(@NotNull EntityLightningBolt lightningBolt) {
-
+    protected void onHitBlock(BlockHitResult result) {
+        super.onHitBlock(result);
+        if (this.level().isClientSide()) {
+            return;
+        }
+        BlockPos pos = result.getBlockPos();
+        BlockState state = this.level().getBlockState(pos);
+        boolean solid = !state.getCollisionShape(this.level(), pos).isEmpty();
+        if (!this.noPhysics && solid) {
+            ItemAwakenedAxe.EnumImpactMode mode = ItemAwakenedAxe.EnumImpactMode.getMode(this.getAxeItem());
+            mode.onImpact(this, null);
+            this.reverseDirection(true);
+        }
     }
 
-    @Override
-    public boolean isImmuneToExplosions() {
-        return true;
-    }
-
-    private void returnBoomerangToPlayer(EntityPlayer player) {
-        if (!this.world.isRemote) {
-            ItemStack crowdedItem = player.inventory.getStackInSlot(this.thrownFromSlot);
-            player.inventory.mainInventory.set(this.thrownFromSlot, this.getAxeItem());
+    private void returnBoomerangToPlayer(Player player) {
+        if (!this.level().isClientSide()) {
+            ItemStack crowdedItem = player.getInventory().getItem(this.thrownFromSlot);
+            player.getInventory().setItem(this.thrownFromSlot, this.getAxeItem());
             if (!crowdedItem.isEmpty()) {
                 ItemHandlerHelper.giveItemToPlayer(player, crowdedItem);
             }
@@ -251,19 +240,18 @@ public class EntityThrownAxe extends EntityThrowable implements IEntityAdditiona
 
     private void reverseDirection(boolean noClip) {
         this.returnTime = Math.min(this.returnTime, 0);
-        this.noClip = noClip;
-        this.motionX *= -1;
-        this.motionY *= -1;
-        this.motionZ *= -1;
+        this.noPhysics = noClip;
+        Vec3 motion = this.getDeltaMovement();
+        this.setDeltaMovement(motion.scale(-1.0D));
     }
 
     private float updateRotationRadians(float currHeading, float throwerHeading, float curveScale) {
-        float var4 = (throwerHeading - currHeading);
-        var4 %= (float) Math.PI * 2;
-        if (var4 >= Math.PI) var4 -= (float) Math.PI * 2;
-        if (var4 < -Math.PI) var4 += (float) Math.PI * 2;
-        if (var4 > curveScale) var4 = curveScale;
-        if (var4 < -curveScale) var4 = -curveScale;
-        return currHeading + var4;
+        float diff = (throwerHeading - currHeading);
+        diff %= (float) Math.PI * 2;
+        if (diff >= Math.PI) diff -= (float) Math.PI * 2;
+        if (diff < -Math.PI) diff += (float) Math.PI * 2;
+        if (diff > curveScale) diff = curveScale;
+        if (diff < -curveScale) diff = -curveScale;
+        return currHeading + diff;
     }
 }

@@ -1,0 +1,40 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "All Rights Reserved"
+issueTrackerURL = "https://github.com/Thaumic-Modding-Team/KamiReborn/issues"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "${mod_name}"
+displayURL = "${mod_url}"
+logoFile = "${mod_logo_path}"
+credits = "${mod_credits}"
+authors = "${mod_authors}"
+description = '''${mod_description}'''
+
+[[accessTransformers]]
+file = "META-INF/${mod_id}_at.cfg"
+
+[[dependencies."${mod_id}"]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies."${mod_id}"]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neoforge_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+# Thaumaturge is the successor of Thaumcraft on Minecraft 26.1
+# https://github.com/Leclowndu93150/Thaumaturge
+[[dependencies."${mod_id}"]]
+modId = "thaumaturge"
+type = "required"
+versionRange = "[1,)"
+ordering = "AFTER"
+side = "BOTH"

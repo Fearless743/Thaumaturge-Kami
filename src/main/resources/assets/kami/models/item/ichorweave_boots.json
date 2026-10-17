@@ -1,7 +1,7 @@
 {
-  "parent": "item/generated",
+  "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "kami:items/ichorweave_boots"
+    "layer0": "kami:item/ichorweave_boots"
   },
   "overrides": [
     {

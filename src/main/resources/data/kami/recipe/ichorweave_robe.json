@@ -1,0 +1,27 @@
+{
+  "type": "thaumaturge:arcane_workbench_shaped",
+  "crystals": [
+    {
+      "amount": 8,
+      "aspect": "thaumaturge:aer"
+    }
+  ],
+  "key": {
+    "F": "kami:ichorweave_fabric"
+  },
+  "pattern": [
+    "F F",
+    "FFF",
+    "FFF"
+  ],
+  "research": {
+    "entry": "kami:ichorweave_armor"
+  },
+  "result": {
+    "id": "kami:ichorweave_robe",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  },
+  "vis": 250
+}

@@ -10,7 +10,6 @@ import mod.emt.kami.items.tools.*;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
@@ -49,20 +48,12 @@ public final class ModItemsKAMI {
     public static final DeferredItem<Item> ICHORIUM_PICKAXE = ITEMS.registerItem("ichorium_pickaxe", ItemIchoriumPickaxe::new);
     public static final DeferredItem<Item> ICHORIUM_AXE = ITEMS.registerItem("ichorium_axe", ItemIchoriumAxe::new);
     public static final DeferredItem<Item> ICHORIUM_HOE = ITEMS.registerItem("ichorium_hoe", ItemIchoriumHoe::new);
-    public static final DeferredItem<Item> ICHORIUM_SPEAR = ITEMS.registerItem("ichorium_spear", ItemIchoriumSpear::new);
-    public static final DeferredItem<Item> ICHORIUM_HAMMER = ITEMS.registerItem("ichorium_mace", ItemIchoriumHammer::new);
-    public static final DeferredItem<Item> ICHORIUM_SHIELD = ITEMS.registerItem("ichorium_shield", ItemIchoriumShield::new);
-    public static final DeferredItem<Item> ICHORIUM_TRIDENT = ITEMS.registerItem("ichorium_trident", properties ->
-            new ItemIchoriumTrident(properties.durability(3000).rarity(Rarity.EPIC).fireResistant()
-                    .attributes(ItemIchoriumTrident.createModifiers())));
 
     public static final DeferredItem<Item> AWAKENED_ICHORIUM_SWORD = ITEMS.registerItem("awakened_ichorium_sword", ItemAwakenedSword::new);
     public static final DeferredItem<Item> AWAKENED_ICHORIUM_SHOVEL = ITEMS.registerItem("awakened_ichorium_shovel", ItemAwakenedShovel::new);
     public static final DeferredItem<Item> AWAKENED_ICHORIUM_PICKAXE = ITEMS.registerItem("awakened_ichorium_pickaxe", ItemAwakenedPickaxe::new);
     public static final DeferredItem<Item> AWAKENED_ICHORIUM_AXE = ITEMS.registerItem("awakened_ichorium_axe", ItemAwakenedAxe::new);
     public static final DeferredItem<Item> AWAKENED_ICHORIUM_SICKLE = ITEMS.registerItem("awakened_ichorium_sickle", ItemAwakenedSickle::new);
-    public static final DeferredItem<Item> AWAKENED_ICHORIUM_SPEAR = ITEMS.registerItem("awakened_ichorium_spear", ItemAwakenedSpear::new);
-    public static final DeferredItem<Item> AWAKENED_ICHORIUM_MACE = ITEMS.registerItem("awakened_ichorium_mace", ItemAwakenedHammer::new);
 
     public static final DeferredItem<Item> ICHORIUM_CASTER = ITEMS.registerItem("ichorium_caster", ItemIchoriumCaster::new);
 

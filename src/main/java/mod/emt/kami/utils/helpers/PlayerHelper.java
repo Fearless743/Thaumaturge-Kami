@@ -1,67 +1,64 @@
 package mod.emt.kami.utils.helpers;
 
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.ai.attributes.IAttributeInstance;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.math.Vec3d;
-import net.minecraftforge.common.UsernameCache;
-import net.minecraftforge.fml.common.FMLCommonHandler;
-import net.minecraftforge.fml.relauncher.Side;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.common.UsernameCache;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 public class PlayerHelper {
 
-    public static double getReachDistance(EntityPlayer player) {
-        IAttributeInstance instance = player.getEntityAttribute(EntityPlayer.REACH_DISTANCE);
-        return instance != null ? instance.getAttributeValue() : EntityPlayer.REACH_DISTANCE.getDefaultValue();
+    public static double getReachDistance(Player player) {
+        return player.blockInteractionRange();
     }
 
     @Nullable
-    public static RayTraceResult rayTrace(EntityLivingBase player, float partialTicks) {
-        return rayTrace(player, player.getAttributeMap().getAttributeInstance(EntityPlayer.REACH_DISTANCE).getAttributeValue(), partialTicks);
+    public static HitResult rayTrace(LivingEntity entity, float partialTicks) {
+        double reach = entity instanceof Player player ? getReachDistance(player) : 5.0D;
+        return rayTrace(entity, reach, partialTicks);
     }
 
     @Nullable
-    public static RayTraceResult rayTrace(EntityLivingBase entityLiving, double blockReachDistance, float partialTicks) {
-        return rayTrace(entityLiving, blockReachDistance, partialTicks, false);
+    public static HitResult rayTrace(LivingEntity entity, double blockReachDistance, float partialTicks) {
+        return rayTrace(entity, blockReachDistance, partialTicks, false);
     }
 
     @Nullable
-    public static RayTraceResult rayTrace(EntityLivingBase entityLiving, double blockReachDistance, float partialTicks, boolean stopOnLiquid) {
-        Vec3d height = entityLiving.getPositionEyes(partialTicks);
-        Vec3d look = entityLiving.getLook(partialTicks);
-        Vec3d reach = height.add(look.x * blockReachDistance, look.y * blockReachDistance, look.z * blockReachDistance);
-        return entityLiving.world.rayTraceBlocks(height, reach, stopOnLiquid, false, true);
+    public static HitResult rayTrace(LivingEntity entity, double blockReachDistance, float partialTicks, boolean stopOnLiquid) {
+        return entity.pick(blockReachDistance, partialTicks, stopOnLiquid);
     }
 
     @Nullable
-    public static EntityPlayer getPlayerFromUUID(UUID uuid) {
-        return FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT ? null : FMLCommonHandler.instance().getMinecraftServerInstance().getPlayerList().getPlayerByUUID(uuid);
+    public static ServerPlayer getPlayerFromUUID(UUID uuid) {
+        var server = ServerLifecycleHooks.getCurrentServer();
+        return server == null ? null : server.getPlayerList().getPlayer(uuid);
     }
 
-    public static UUID getUUIDFromPlayer(EntityPlayer player) {
-        return player.getGameProfile().getId();
+    public static UUID getUUIDFromPlayer(Player player) {
+        return player.getUUID();
     }
 
     public static String getUsernameFromUUID(UUID uuid) {
         return UsernameCache.getLastKnownUsername(uuid);
     }
 
-    public static EnumFacing getPlayerFacing(EntityPlayer player) {
-        Vec3d lookVec = player.getLookVec();
+    public static Direction getPlayerFacing(Player player) {
+        Vec3 lookVec = player.getLookAngle();
         double absX = Math.abs(lookVec.x);
         double absY = Math.abs(lookVec.y);
         double absZ = Math.abs(lookVec.z);
-        if(absY > absX && absY > absZ) {
-            return absY < 0 ? EnumFacing.DOWN : EnumFacing.UP;
+        if (absY > absX && absY > absZ) {
+            return lookVec.y < 0 ? Direction.DOWN : Direction.UP;
         } else if (absX > absZ) {
-            return absX < 0 ? EnumFacing.WEST : EnumFacing.EAST;
+            return lookVec.x < 0 ? Direction.WEST : Direction.EAST;
         } else {
-            return absZ < 0 ? EnumFacing.NORTH : EnumFacing.SOUTH;
+            return lookVec.z < 0 ? Direction.NORTH : Direction.SOUTH;
         }
     }
 }

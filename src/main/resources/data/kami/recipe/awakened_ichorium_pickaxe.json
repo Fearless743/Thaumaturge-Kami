@@ -1,0 +1,46 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:desiderium"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:terra"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:perditio"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:motus"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:instrumentum"
+    }
+  ],
+  "catalyst": "kami:ichorium_pickaxe",
+  "components": [
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:awakened_ichorium_pickaxe"
+  },
+  "result": {
+    "id": "kami:awakened_ichorium_pickaxe",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  }
+}

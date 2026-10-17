@@ -1,69 +1,73 @@
 package mod.emt.kami.client.render;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
+import mod.emt.kami.Kami;
 import mod.emt.kami.entities.EntityThrownAxe;
-import mod.emt.kami.registry.ModItemsKAMI;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderItem;
-import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
-import net.minecraft.client.renderer.entity.Render;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.client.registry.IRenderFactory;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import mod.emt.kami.registry.ModEntitiesKAMI;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
-@SideOnly(Side.CLIENT)
-public class RenderThrownAxe extends Render<EntityThrownAxe> {
-    private static final ItemStack AXE = new ItemStack(ModItemsKAMI.AWAKENED_ICHORIUM_AXE);
-    private final RenderItem itemRenderer;
+/**
+ * Renders the thrown Awakened Ichorium Axe as its item model, oriented along its flight
+ * direction (boomerang style) rather than bill-boarded toward the camera.
+ */
+@EventBusSubscriber(modid = Kami.MOD_ID, value = Dist.CLIENT)
+public class RenderThrownAxe extends EntityRenderer<EntityThrownAxe, RenderThrownAxe.AxeRenderState> {
+    private final ItemModelResolver itemModelResolver;
 
-    public RenderThrownAxe(RenderManager renderManager, RenderItem itemRenderer)
-    {
-        super(renderManager);
-        this.itemRenderer = itemRenderer;
+    public RenderThrownAxe(EntityRendererProvider.Context context) {
+        super(context);
+        this.itemModelResolver = context.getItemModelResolver();
     }
 
     @Override
-    public void doRender(EntityThrownAxe entity, double x, double y, double z, float entityYaw, float partialTicks)
-    {
-        GlStateManager.pushMatrix();
-        GlStateManager.translate((float) x, (float) y, (float) z);
-        GlStateManager.rotate(entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks + (entity.rotationYaw < 0 ? -90.0F : 90.0F), 1.0F, 0.0F, 0.0F);
-        GlStateManager.rotate(entity.prevRotationPitch + (entity.rotationPitch - entity.prevRotationPitch) * partialTicks, 0.0F, 0.0F, 1.0F);
-        bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
-
-        if (renderOutlines)
-        {
-            GlStateManager.enableColorMaterial();
-            GlStateManager.enableOutlineMode(16748812);
-        }
-
-        itemRenderer.renderItem(AXE, ItemCameraTransforms.TransformType.GROUND);
-
-        if (renderOutlines)
-        {
-            GlStateManager.disableOutlineMode();
-            GlStateManager.disableColorMaterial();
-        }
-
-        GlStateManager.popMatrix();
+    public AxeRenderState createRenderState() {
+        return new AxeRenderState();
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(EntityThrownAxe entity)
-    {
-        return TextureMap.LOCATION_BLOCKS_TEXTURE;
+    public void extractRenderState(EntityThrownAxe entity, AxeRenderState state, float partialTick) {
+        super.extractRenderState(entity, state, partialTick);
+        this.itemModelResolver.updateForNonLiving(state.item, entity.getAxeItem(),
+                ItemDisplayContext.GROUND, entity);
+        state.yRot = Mth.rotLerp(partialTick, entity.yRotO, entity.getYRot());
+        state.xRot = Mth.lerp(partialTick, entity.xRotO, entity.getXRot());
     }
 
-    public static class Factory implements IRenderFactory<EntityThrownAxe>
-    {
-        @Override
-        public Render<? super EntityThrownAxe> createRenderFor(RenderManager manager)
-        {
-            return new RenderThrownAxe(manager, Minecraft.getMinecraft().getRenderItem());
-        }
+    @Override
+    public void submit(AxeRenderState state, PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
+                       CameraRenderState camera) {
+        poseStack.pushPose();
+        poseStack.mulPose(camera.orientation);
+        poseStack.mulPose(Axis.XP.rotationDegrees(state.yRot + (state.yRot < 0.0F ? -90.0F : 90.0F)));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(state.xRot));
+        state.item.submit(poseStack, submitNodeCollector, state.lightCoords, OverlayTexture.NO_OVERLAY,
+                state.outlineColor);
+        poseStack.popPose();
+        super.submit(state, poseStack, submitNodeCollector, camera);
+    }
+
+    @SubscribeEvent
+    public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(ModEntitiesKAMI.THROWN_AWAKENED_ICHORIUM_AXE.get(), RenderThrownAxe::new);
+    }
+
+    public static class AxeRenderState extends EntityRenderState {
+        public final ItemStackRenderState item = new ItemStackRenderState();
+        public float yRot;
+        public float xRot;
     }
 }

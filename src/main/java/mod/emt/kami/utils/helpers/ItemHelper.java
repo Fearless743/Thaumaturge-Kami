@@ -1,11 +1,12 @@
 package mod.emt.kami.utils.helpers;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagByte;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.util.Unit;
+import net.minecraft.world.item.ItemStack;
 
 public class ItemHelper {
     public static ItemStack setUnbreakable(ItemStack stack) {
-        stack.setTagInfo("Unbreakable", new NBTTagByte((byte) 1));
+        stack.set(DataComponents.UNBREAKABLE, Unit.INSTANCE);
         return stack;
     }
 }

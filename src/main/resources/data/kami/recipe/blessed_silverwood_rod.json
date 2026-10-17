@@ -1,0 +1,39 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 50,
+      "aspect": "thaumaturge:bestia"
+    },
+    {
+      "amount": 50,
+      "aspect": "thaumaturge:humanus"
+    },
+    {
+      "amount": 50,
+      "aspect": "thaumaturge:cognitio"
+    },
+    {
+      "amount": 50,
+      "aspect": "thaumaturge:herba"
+    },
+    {
+      "amount": 50,
+      "aspect": "thaumaturge:sensus"
+    }
+  ],
+  "catalyst": "thaumaturge:sapling_silverwood",
+  "components": [
+    "thaumaturge:nugget_quicksilver",
+    "thaumaturge:log_silverwood",
+    "#c:gems/quicksilver",
+    "thaumaturge:shimmerleaf"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:ichorium_tools"
+  },
+  "result": {
+    "id": "kami:blessed_silverwood_rod"
+  }
+}

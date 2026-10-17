@@ -1,361 +1,238 @@
 package mod.emt.kami.items.armor;
 
-import com.google.common.collect.Multimap;
-import com.invadermonky.thaumicapi.handlers.PlayerMovementAbilityHandler;
-import com.invadermonky.thaumicapi.handlers.PlayerMovementAbilityHandler.MovementType;
 import mod.emt.kami.Kami;
 import mod.emt.kami.config.ConfigHandlerKami;
 import mod.emt.kami.handlers.CommonEventHandler;
+import mod.emt.kami.items.ModMaterials;
 import mod.emt.kami.registry.ModItemsKAMI;
-import mod.emt.kami.registry.ModSoundsKAMI;
-import mod.emt.kami.utils.helpers.ItemHelper;
 import mod.emt.kami.utils.helpers.PlayerHelper;
-import net.minecraft.block.material.Material;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.client.util.ITooltipFlag;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.ai.attributes.AttributeModifier;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Enchantments;
-import net.minecraft.init.MobEffects;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.ItemStack;
-import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.world.World;
-import net.minecraftforge.common.ForgeHooks;
-import net.minecraftforge.common.ISpecialArmor;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import thaumcraft.client.fx.FXDispatcher;
-import thaumcraft.common.items.baubles.ItemCloudRing;
-import thaumcraft.common.lib.network.PacketHandler;
-import thaumcraft.common.lib.network.playerdata.PacketPlayerFlagToServer;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 
-import java.util.List;
-import java.util.UUID;
-import java.util.function.BiFunction;
-import java.util.function.Predicate;
+import java.util.function.Consumer;
 
-public class ItemAwakenedArmor extends ItemIchorweaveArmor implements ISpecialArmor {
-    protected static final String TEXTURE_PATH_1 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_awakened_layer_1.png").toString();
-    protected static final String TEXTURE_PATH_2 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_awakened_layer_2.png").toString();
-    protected static final String TEXTURE_PATH_DYED_1 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_awakened_layer_1_dyed.png").toString();
-    protected static final String TEXTURE_PATH_DYED_2 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_awakened_layer_2_dyed.png").toString();
-    protected static final String TEXTURE_PATH_DYED_OVERLAY_1 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_awakened_layer_1_dyed_overlay.png").toString();
-    protected static final String TEXTURE_PATH_DYED_OVERLAY_2 = new ResourceLocation(Kami.MOD_ID, "textures/models/armor/ichorweave_awakened_layer_2_dyed_overlay.png").toString();
-
+/**
+ * The Awakened Ichorweave robe set. Each piece grants a passive ability while worn (night vision
+ * and water breathing from the hood, creative flight from the robe, fire resistance from the
+ * leggings, and movement/jump bonuses from the boots), and wearing the full set further softens
+ * incoming damage.
+ *
+ * <p>The 1.12 implementation hooked ThaumicAPI's movement-ability handler, Thaumcraft's cloud-ring
+ * double jump and a custom network packet; none of those exist on 26.1, so the abilities are
+ * applied through the modern per-item {@link #inventoryTick} hook and transient attribute
+ * modifiers.</p>
+ */
+public class ItemAwakenedArmor extends ItemIchorweaveArmor {
     public static final int POTION_DURATION_MAX = 310;
     public static final int POTION_DURATION_MIN = 301;
 
-    protected static final BiFunction<EntityPlayer, MovementType, Float> MOVEMENT_FUNC = (player, type) -> {
-        float boost = 0;
-        switch (type) {
-            case DRY_GROUND:
-                boost = (float) ConfigHandlerKami.armor.bootsMovementBonus;
-                return player.isSneaking() ? boost / 4.0f : boost;
-            case WATER_GROUND:
-                boost = (float) Math.max(ConfigHandlerKami.armor.bootsMovementBonus / 4.0f, ConfigHandlerKami.armor.bootsSwimBonus);
-                return player.isSneaking() ? boost / 4.0f : boost;
-            case WATER_SWIM:
-                boost = (float) ConfigHandlerKami.armor.bootsSwimBonus;
-                return player.isSneaking() ? boost / 4.0f : boost;
-            case JUMP_BEGIN:
-                return (float) ConfigHandlerKami.armor.bootsJumpBoost;
-            case JUMP_FACTOR:
-                return (float) ConfigHandlerKami.armor.bootsJumpFactor;
-            case STEP_HEIGHT:
-                return !player.isSneaking() ? (float) 0.75 : 0;
-            default:
-                return boost;
-        }
-    };
-    protected static final Predicate<EntityPlayer> CONTINUE_FUNC = player -> player.getItemStackFromSlot(EntityEquipmentSlot.FEET).getItem() instanceof ItemAwakenedArmor;
-    public final UUID MODIFIER_UUID;
+    /**
+     * Fraction of incoming damage ignored while the full set is worn. The 1.12 original reported an
+     * absorption ratio of 0.2 per piece; Forge summed that across the four worn pieces, so the set
+     * reduced damage by 80% in total (as the tooltip and research text state).
+     */
+    public static final float SET_DAMAGE_REDUCTION = 0.8F;
 
-    public ItemAwakenedArmor(String unlocName, EntityEquipmentSlot equipmentSlot) {
-        super(unlocName, equipmentSlot);
-        this.MODIFIER_UUID = new UUID((this.getTranslationKey() + this.armorType).hashCode(), 0);
+    private static final Identifier BOOTS_SPEED_MODIFIER =
+            Identifier.fromNamespaceAndPath(Kami.MOD_ID, "awakened_boots_speed");
+    private static final Identifier BOOTS_JUMP_MODIFIER =
+            Identifier.fromNamespaceAndPath(Kami.MOD_ID, "awakened_boots_jump");
+
+    public ItemAwakenedArmor(EquipmentSlot slot, Item.Properties properties) {
+        super(slot, ModMaterials.AWAKENED_ICHORWEAVE, properties);
     }
 
     @Override
-    public void getSubItems(@NotNull CreativeTabs tab, @NotNull NonNullList<ItemStack> items) {
-        if(this.isInCreativeTab(tab)) {
-            ItemStack stack = new ItemStack(this);
-            ItemHelper.setUnbreakable(stack);
-            items.add(stack);
-        }
+    public int getVisDiscount(ItemStack stack) {
+        return 10;
     }
 
     @Override
-    public @NotNull Multimap<String, AttributeModifier> getAttributeModifiers(@NotNull EntityEquipmentSlot slot, @NotNull ItemStack stack) {
-        Multimap<String, AttributeModifier> multimap = super.getAttributeModifiers(slot, stack);
-        if(slot == this.armorType) {
-            switch (slot) {
-                case HEAD:
-                    multimap.put(SharedMonsterAttributes.KNOCKBACK_RESISTANCE.getName(), new AttributeModifier(MODIFIER_UUID, "Ichorweave modifier " + this.armorType, 0.2, Constants.AttributeModifierOperation.MULTIPLY));
-                    break;
-                case CHEST:
-                    multimap.put(SharedMonsterAttributes.KNOCKBACK_RESISTANCE.getName(), new AttributeModifier(MODIFIER_UUID, "Ichorweave modifier " + this.armorType, 0.3, Constants.AttributeModifierOperation.MULTIPLY));
-                    break;
-                case LEGS:
-                    multimap.put(SharedMonsterAttributes.KNOCKBACK_RESISTANCE.getName(), new AttributeModifier(MODIFIER_UUID, "Ichorweave modifier " + this.armorType, 0.3, Constants.AttributeModifierOperation.MULTIPLY));
-                    break;
-                case FEET:
-                    multimap.put(SharedMonsterAttributes.KNOCKBACK_RESISTANCE.getName(), new AttributeModifier(MODIFIER_UUID, "Ichorweave modifier " + this.armorType, 0.2, Constants.AttributeModifierOperation.MULTIPLY));
-                    break;
-            }
-        }
-        return multimap;
+    public int warp(ItemStack stack, LivingEntity entity) {
+        return 3;
     }
 
     @Override
-    public String getArmorTexture(@NotNull ItemStack stack, @NotNull Entity entity, @NotNull EntityEquipmentSlot slot, @NotNull String type) {
-        // If dye is never used on it, it'll use a dyeless texture instead
-        if (this.getDyedColor(stack) != getDefaultDyedColorForMeta(stack.getMetadata())) {
-            if (slot == EntityEquipmentSlot.LEGS) {
-                return type == null ? TEXTURE_PATH_DYED_2 : TEXTURE_PATH_DYED_OVERLAY_2;
-            } else {
-                return type == null ? TEXTURE_PATH_DYED_1 : TEXTURE_PATH_DYED_OVERLAY_1;
-            }
-        }
-
-        return slot == EntityEquipmentSlot.LEGS ? TEXTURE_PATH_2 : TEXTURE_PATH_1;
-    }
-
-    @Override
-    public boolean canApplyAtEnchantingTable(@NotNull ItemStack stack, @NotNull Enchantment enchantment) {
-        if(stack.getItem() == ModItemsKAMI.AWAKENED_ICHORWEAVE_HOOD && enchantment == Enchantments.AQUA_AFFINITY) {
+    public boolean isPrimaryItemFor(ItemStack stack, Holder<Enchantment> enchantment) {
+        //Aqua Affinity is disabled on the Awakened Hood, matching the original.
+        if (stack.is(ModItemsKAMI.AWAKENED_ICHORWEAVE_HOOD.get()) && enchantment.is(Enchantments.AQUA_AFFINITY)) {
             return false;
-        } else {
-            return super.canApplyAtEnchantingTable(stack, enchantment);
         }
+        return super.isPrimaryItemFor(stack, enchantment);
     }
 
-    @SideOnly(Side.CLIENT)
     @Override
-    public void addInformation(@NotNull ItemStack stack, @Nullable World world, @NotNull List<String> tooltip, @NotNull ITooltipFlag tooltipFlag) {
-        tooltip.add(TextFormatting.GREEN + I18n.format("tooltip.kami.awakened"));
-        super.addInformation(stack, world, tooltip, tooltipFlag);
-        if(Minecraft.getMinecraft().player != null) {
-            EntityPlayer player = Minecraft.getMinecraft().player;
-            int setCount = this.getEquippedPieces(player);
-            tooltip.add("");
-            tooltip.add(I18n.format("tooltip.kami.awakened_set.info", setCount));
-            if(GuiScreen.isShiftKeyDown()) {
-                tooltip.add(I18n.format("tooltip.kami.awakened_set.desc"));
-                tooltip.add((hasHelm(player)     ? TextFormatting.LIGHT_PURPLE : TextFormatting.GRAY) + " - " + I18n.format(ModItemsKAMI.AWAKENED_ICHORWEAVE_HOOD.getTranslationKey() + ".name"));
-                tooltip.add((hasChest(player)    ? TextFormatting.LIGHT_PURPLE : TextFormatting.GRAY) + " - " + I18n.format(ModItemsKAMI.AWAKENED_ICHORWEAVE_ROBE.getTranslationKey() + ".name"));
-                tooltip.add((hasLeggings(player) ? TextFormatting.LIGHT_PURPLE : TextFormatting.GRAY) + " - " + I18n.format(ModItemsKAMI.AWAKENED_ICHORWEAVE_LEGGINGS.getTranslationKey() + ".name"));
-                tooltip.add((hasBoots(player)    ? TextFormatting.LIGHT_PURPLE : TextFormatting.GRAY) + " - " + I18n.format(ModItemsKAMI.AWAKENED_ICHORWEAVE_BOOTS.getTranslationKey() + ".name"));
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> consumer, TooltipFlag flag) {
+        consumer.accept(Component.translatable("tooltip.kami.awakened").withStyle(ChatFormatting.GREEN));
+        super.appendHoverText(stack, context, display, consumer, flag);
+        //The "pieces equipped" line needs the viewing player, which is only available on the client.
+        //It is appended by mod.emt.kami.client.ClientItemTooltips.
+    }
+
+    @Override
+    public void inventoryTick(ItemStack stack, ServerLevel level, Entity entity, EquipmentSlot slot) {
+        if (!(entity instanceof Player player) || slot != getEquipmentSlot() || !player.isAlive()) {
+            return;
+        }
+        switch (slot) {
+            case HEAD -> tickHelmet(player);
+            case CHEST -> tickChestplate(player);
+            case LEGS -> tickLeggings(player);
+            case FEET -> tickBoots(player);
+            default -> {
             }
         }
     }
 
-    @Override
-    public ArmorProperties getProperties(EntityLivingBase player, @NotNull ItemStack armor, DamageSource source, double damage, int slot) {
-        int priority = 0;
-        double ratio = 0;
-        if(this.hasArmorSet(player)) {
-            priority = 1;
-            ratio = 0.2;
-        }
-        return new ArmorProperties(priority, ratio, Integer.MAX_VALUE);
-    }
-
-    @Override
-    public int getArmorDisplay(EntityPlayer player, @NotNull ItemStack armor, int slot) {
-        return 0;
-    }
-
-    @Override
-    public void damageArmor(EntityLivingBase entity, @NotNull ItemStack stack, DamageSource source, int damage, int slot) {}
-
-    @Override
-    public boolean handleUnblockableDamage(EntityLivingBase entity, @NotNull ItemStack armor, DamageSource source, double damage, int slot) {
-        return this.hasArmorSet(entity);
-    }
-
-    @Override
-    public void onArmorTick(@NotNull World world, @NotNull EntityPlayer player, @NotNull ItemStack itemStack) {
-        if(player.isEntityAlive()) {
-            switch (this.armorType) {
-                case HEAD:
-                    this.tickHelmet(world, player, itemStack);
-                    break;
-                case CHEST:
-                    this.tickChestplate(world, player, itemStack);
-                    break;
-                case LEGS:
-                    this.tickLeggings(world, player, itemStack);
-                    break;
-                case FEET:
-                    this.tickBoots(world, player, itemStack);
-                    break;
-            }
-            this.tickArmorSet(world, player, itemStack);
-        }
-    }
-
-    protected void tickHelmet(@NotNull World world, @NotNull EntityPlayer player, @NotNull ItemStack itemStack) {
-        //Water Breathing
+    protected void tickHelmet(Player player) {
+        //Water breathing plus night vision in the dark.
         boolean activateNightVision = false;
-        if(!player.canBreatheUnderwater() && player.isInsideOfMaterial(Material.WATER)) {
-            player.setAir(300);
+        if (player.isUnderWater()) {
+            player.setAirSupply(300);
             activateNightVision = true;
         } else {
-            activateNightVision |= this.shouldNightVisionActivate(player);
+            activateNightVision = shouldNightVisionActivate(player);
         }
 
-        if(!world.isRemote) {
-            PotionEffect effect = player.getActivePotionEffect(MobEffects.NIGHT_VISION);
-            if(activateNightVision) {
-                if(effect == null || effect.getDuration() <= POTION_DURATION_MIN) {
-                    player.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION, 250, 0, false, false));
-                }
-            } else {
-                if(effect != null && effect.getDuration() <= POTION_DURATION_MAX) {
-                    player.removePotionEffect(MobEffects.NIGHT_VISION);
-                }
+        MobEffectInstance effect = player.getEffect(MobEffects.NIGHT_VISION);
+        if (activateNightVision) {
+            if (effect == null || effect.getDuration() <= POTION_DURATION_MIN) {
+                player.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 250, 0, false, false));
             }
+        } else if (effect != null && effect.getDuration() <= POTION_DURATION_MAX) {
+            player.removeEffect(MobEffects.NIGHT_VISION);
         }
     }
 
-    protected boolean shouldNightVisionActivate(EntityLivingBase entityLiving) {
-        World world = entityLiving.world;
-        BlockPos playerPos = new BlockPos(entityLiving.posX, entityLiving.getEntityBoundingBox().maxY, entityLiving.posZ);
-        int playerLight = world.getLightFromNeighbors(playerPos);
-        if (world.isThundering()) {
-            int skyLight = world.getSkylightSubtracted();
-            world.setSkylightSubtracted(7);
-            playerLight = world.getLightFromNeighbors(playerPos);
-            world.setSkylightSubtracted(skyLight);
-        }
-        if (playerLight < 7) {
+    protected boolean shouldNightVisionActivate(LivingEntity entity) {
+        Level level = entity.level();
+        BlockPos eyePos = BlockPos.containing(entity.getX(), entity.getEyeY(), entity.getZ());
+        if (level.getMaxLocalRawBrightness(eyePos) < 7) {
             return true;
-        } else {
-            RayTraceResult trace = PlayerHelper.rayTrace(entityLiving, 24, 0, true);
-            if (trace != null) {
-                switch (trace.typeOfHit) {
-                    case BLOCK:
-                        return world.getLight(trace.getBlockPos().offset(trace.sideHit)) < 7;
-                    case MISS:
-                    case ENTITY:
-                        return world.getLight(trace.getBlockPos()) < 7;
-                }
-            }
-            return false;
         }
+
+        HitResult trace = PlayerHelper.rayTrace(entity, 24.0D, 0.0F, true);
+        if (trace instanceof BlockHitResult blockHit) {
+            return level.getMaxLocalRawBrightness(blockHit.getBlockPos().relative(blockHit.getDirection())) < 7;
+        } else if (trace != null && trace.getType() != HitResult.Type.MISS) {
+            return level.getMaxLocalRawBrightness(BlockPos.containing(trace.getLocation())) < 7;
+        }
+        return false;
     }
 
-    protected void tickChestplate(@NotNull World world, @NotNull EntityPlayer player, @NotNull ItemStack itemStack) {
-        //Creative Flight
-        if(!player.capabilities.allowFlying) {
-            player.capabilities.allowFlying = true;
+    protected void tickChestplate(Player player) {
+        //Creative flight and no fall damage.
+        if (!player.getAbilities().mayfly) {
+            player.getAbilities().mayfly = true;
             CommonEventHandler.FLYING_PLAYERS.add(PlayerHelper.getUUIDFromPlayer(player));
+            player.onUpdateAbilities();
         }
-        //No fall damage
-        player.fallDistance = 0;
+        player.fallDistance = 0.0F;
     }
 
-    protected void tickLeggings(@NotNull World world, @NotNull EntityPlayer player, @NotNull ItemStack itemStack) {
-        if(!world.isRemote) {
-            PotionEffect effect = player.getActivePotionEffect(MobEffects.FIRE_RESISTANCE);
-            if(effect == null || effect.getDuration() <= POTION_DURATION_MIN) {
-                player.addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, POTION_DURATION_MAX, 0, false, false));
+    protected void tickLeggings(Player player) {
+        MobEffectInstance effect = player.getEffect(MobEffects.FIRE_RESISTANCE);
+        if (effect == null || effect.getDuration() <= POTION_DURATION_MIN) {
+            player.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, POTION_DURATION_MAX, 0, false, false));
+        }
+    }
+
+    protected void tickBoots(Player player) {
+        //Jump height and movement speed, applied as transient attribute modifiers while the boots
+        //are worn and not flying.
+        boolean apply = !player.getAbilities().flying && !player.isFallFlying();
+        AttributeInstance speed = player.getAttribute(Attributes.MOVEMENT_SPEED);
+        AttributeInstance jump = player.getAttribute(Attributes.JUMP_STRENGTH);
+
+        if (apply) {
+            if (speed != null && !speed.hasModifier(BOOTS_SPEED_MODIFIER)) {
+                speed.addTransientModifier(new AttributeModifier(BOOTS_SPEED_MODIFIER,
+                        ConfigHandlerKami.armor.bootsMovementBonus, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+            }
+            if (jump != null && !jump.hasModifier(BOOTS_JUMP_MODIFIER)) {
+                jump.addTransientModifier(new AttributeModifier(BOOTS_JUMP_MODIFIER,
+                        ConfigHandlerKami.armor.bootsJumpBoost, AttributeModifier.Operation.ADD_VALUE));
             }
         } else {
-            boolean spacePressed = Minecraft.getMinecraft().gameSettings.keyBindJump.isPressed();
-            if (spacePressed && !ItemCloudRing.jumpList.containsKey(player.getName())) {
-                ItemCloudRing.jumpList.put(player.getName(), true);
+            if (speed != null) {
+                speed.removeModifier(BOOTS_SPEED_MODIFIER);
             }
-
-            if (spacePressed && !player.onGround && !player.isInWater() && player.jumpTicks == 0 && ItemCloudRing.jumpList.containsKey(player.getName()) && ItemCloudRing.jumpList.get(player.getName())) {
-                FXDispatcher.INSTANCE.drawBamf(player.posX, player.posY + (double)0.5F, player.posZ, 16719133, false, true, EnumFacing.UP);
-                player.getEntityWorld().playSound(player.posX, player.posY, player.posZ, ModSoundsKAMI.ITEM_ICHOR_JUMP.getSoundEvent(), SoundCategory.PLAYERS, 0.1F, 1.0F + (float)player.getEntityWorld().rand.nextGaussian() * 0.05F, false);
-                ItemCloudRing.jumpList.put(player.getName(), false);
-                player.motionY = 0.75F;
-                PotionEffect effect = player.getActivePotionEffect(MobEffects.JUMP_BOOST);
-                if (effect != null) {
-                    player.motionY += (effect.getAmplifier() + 1.0) * 0.1;
-                }
-
-                if (player.isSprinting()) {
-                    float f = player.rotationYaw * ((float)Math.PI / 180F);
-                    player.motionX -= MathHelper.sin(f) * 0.2;
-                    player.motionZ += MathHelper.cos(f) * 0.2;
-                }
-
-                player.fallDistance = 0.0F;
-                PacketHandler.INSTANCE.sendToServer(new PacketPlayerFlagToServer(player, 1));
-                ForgeHooks.onLivingJump(player);
-            }
-
-            if (player.onGround && player.jumpTicks == 0) {
-                ItemCloudRing.jumpList.remove(player.getName());
+            if (jump != null) {
+                jump.removeModifier(BOOTS_JUMP_MODIFIER);
             }
         }
     }
 
-    protected void tickBoots(@NotNull World world, @NotNull EntityPlayer player, @NotNull ItemStack itemStack) {
-        //Jump Height and Movement Speed
-        if(world.isRemote) {
-            boolean apply = !player.capabilities.isFlying && !player.isElytraFlying();
-            if (apply && !PlayerMovementAbilityHandler.playerHasAbility(player, MOVEMENT_FUNC, CONTINUE_FUNC)) {
-                PlayerMovementAbilityHandler.put(player, MOVEMENT_FUNC, CONTINUE_FUNC);
-            } else if (!apply && PlayerMovementAbilityHandler.playerHasAbility(player, MOVEMENT_FUNC, CONTINUE_FUNC)) {
-                PlayerMovementAbilityHandler.remove(player, MOVEMENT_FUNC, CONTINUE_FUNC);
-            }
-        }
+    public boolean hasArmorSet(LivingEntity player) {
+        return getEquippedPieces(player) == 4;
     }
 
-    protected void tickArmorSet(@NotNull World world, @NotNull EntityPlayer player, @NotNull ItemStack itemStack) {
-
-    }
-
-    public boolean hasArmorSet(EntityLivingBase player) {
-        return this.getEquippedPieces(player) == 4;
-    }
-
-    public int getEquippedPieces(EntityLivingBase player) {
+    public static int getEquippedPieces(LivingEntity player) {
         int count = 0;
-        if(hasHelm(player))     count++;
-        if(hasChest(player))    count++;
-        if(hasLeggings(player)) count++;
-        if(hasBoots(player))    count++;
+        if (hasHelm(player)) count++;
+        if (hasChest(player)) count++;
+        if (hasLeggings(player)) count++;
+        if (hasBoots(player)) count++;
         return count;
     }
 
-    public static boolean hasHelm(EntityLivingBase player) {
-        ItemStack stack = player.getItemStackFromSlot(EntityEquipmentSlot.HEAD);
-        return !stack.isEmpty() && stack.getItem() == ModItemsKAMI.AWAKENED_ICHORWEAVE_HOOD;
+    public static boolean hasHelm(LivingEntity player) {
+        return player.getItemBySlot(EquipmentSlot.HEAD).is(ModItemsKAMI.AWAKENED_ICHORWEAVE_HOOD.get());
     }
 
-    public static boolean hasChest(EntityLivingBase player) {
-        ItemStack stack = player.getItemStackFromSlot(EntityEquipmentSlot.CHEST);
-        return !stack.isEmpty() && stack.getItem() == ModItemsKAMI.AWAKENED_ICHORWEAVE_ROBE;
+    public static boolean hasChest(LivingEntity player) {
+        return player.getItemBySlot(EquipmentSlot.CHEST).is(ModItemsKAMI.AWAKENED_ICHORWEAVE_ROBE.get());
     }
 
-    public static boolean hasLeggings(EntityLivingBase player) {
-        ItemStack stack = player.getItemStackFromSlot(EntityEquipmentSlot.LEGS);
-        return !stack.isEmpty() && stack.getItem() == ModItemsKAMI.AWAKENED_ICHORWEAVE_LEGGINGS;
+    public static boolean hasLeggings(LivingEntity player) {
+        return player.getItemBySlot(EquipmentSlot.LEGS).is(ModItemsKAMI.AWAKENED_ICHORWEAVE_LEGGINGS.get());
     }
 
-    public static boolean hasBoots(EntityLivingBase player) {
-        ItemStack stack = player.getItemStackFromSlot(EntityEquipmentSlot.FEET);
-        return !stack.isEmpty() && stack.getItem() == ModItemsKAMI.AWAKENED_ICHORWEAVE_BOOTS;
+    public static boolean hasBoots(LivingEntity player) {
+        return player.getItemBySlot(EquipmentSlot.FEET).is(ModItemsKAMI.AWAKENED_ICHORWEAVE_BOOTS.get());
+    }
+
+    /**
+     * Replaces the legacy {@code ISpecialArmor} set bonus: while the full set is worn, a flat
+     * percentage of incoming damage is absorbed.
+     */
+    @EventBusSubscriber(modid = Kami.MOD_ID)
+    public static final class EventHandler {
+        private EventHandler() {
+        }
+
+        @SubscribeEvent
+        public static void onIncomingDamage(LivingIncomingDamageEvent event) {
+            LivingEntity entity = event.getEntity();
+            if (hasHelm(entity) && hasChest(entity) && hasLeggings(entity) && hasBoots(entity)) {
+                event.setAmount(event.getAmount() * (1.0F - SET_DAMAGE_REDUCTION));
+            }
+        }
     }
 }

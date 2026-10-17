@@ -1,0 +1,27 @@
+{
+  "type": "thaumaturge:arcane_workbench_shaped",
+  "crystals": [
+    {
+      "amount": 8,
+      "aspect": "thaumaturge:aqua"
+    }
+  ],
+  "key": {
+    "F": "kami:ichorweave_fabric",
+    "G": "thaumaturge:goggles_revealing"
+  },
+  "pattern": [
+    "FFF",
+    "FGF"
+  ],
+  "research": {
+    "entry": "kami:ichorweave_armor"
+  },
+  "result": {
+    "id": "kami:ichorweave_hood",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  },
+  "vis": 250
+}

@@ -1,100 +1,91 @@
 package mod.emt.kami.recipe.crafting;
 
+import com.mojang.serialization.MapCodec;
 import mod.emt.kami.items.IDyeableGear;
-import net.minecraft.inventory.InventoryCrafting;
-import net.minecraft.item.EnumDyeColor;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.RecipesArmorDyes;
-import net.minecraft.world.World;
-import net.minecraftforge.oredict.DyeUtils;
-import org.jetbrains.annotations.NotNull;
+import mod.emt.kami.registry.ModRecipeTypesKAMI;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.DyedItemColor;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
-import java.util.Optional;
+import java.util.List;
 
-public class DyeableItemRecipe extends RecipesArmorDyes {
+/**
+ * Special crafting recipe that combines a single piece of dyeable KAMI gear with one or more dyes,
+ * blending them into a single colour. Uses the vanilla {@link DyedItemColor} component so the
+ * resulting colour matches the behaviour of leather armour dyeing.
+ */
+public class DyeableItemRecipe extends CustomRecipe {
+    public static final DyeableItemRecipe INSTANCE = new DyeableItemRecipe();
+    public static final MapCodec<DyeableItemRecipe> MAP_CODEC = MapCodec.unit(INSTANCE);
+
     @Override
-    public boolean matches(InventoryCrafting inv, @NotNull World world) {
-        boolean hasDyedItem = false;
+    public boolean matches(CraftingInput input, Level level) {
+        boolean hasTarget = false;
         boolean hasDye = false;
 
-        for (int i = 0; i < Math.min(inv.getSizeInventory(), 9); ++i) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int slot = 0; slot < input.size(); slot++) {
+            ItemStack stack = input.getItem(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
 
-            if (stack != null && !stack.isEmpty()) {
-                if (stack.getItem() instanceof IDyeableGear) {
-                    if (hasDyedItem) {
-                        return false;
-                    } else {
-                        hasDyedItem = true;
-                    }
-                } else if (DyeUtils.isDye(stack)) {
-                    hasDye = true;
-                } else {
+            if (stack.getItem() instanceof IDyeableGear) {
+                if (hasTarget) {
                     return false;
                 }
+                hasTarget = true;
+            } else if (stack.has(DataComponents.DYE)) {
+                hasDye = true;
+            } else {
+                return false;
             }
         }
 
-        return hasDyedItem && hasDye;
+        return hasTarget && hasDye;
     }
 
     @Override
-    public @NotNull ItemStack getCraftingResult(InventoryCrafting inv) {
-        ItemStack toDye = ItemStack.EMPTY;
-        ArrayList<ItemStack> dyes = new ArrayList<>();
+    public ItemStack assemble(CraftingInput input) {
+        ItemStack target = ItemStack.EMPTY;
+        List<DyeColor> dyes = new ArrayList<>();
 
-        for (int i = 0; i < Math.min(inv.getSizeInventory(), 9); ++i) {
-            ItemStack stack = inv.getStackInSlot(i);
+        for (int slot = 0; slot < input.size(); slot++) {
+            ItemStack stack = input.getItem(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
 
-            if (stack != null && !stack.isEmpty()) {
-                if (stack.getItem() instanceof IDyeableGear) {
-                    if (!toDye.isEmpty()) {
-                        return ItemStack.EMPTY;
-                    } else {
-                        toDye = stack;
-                    }
-                } else if (DyeUtils.isDye(stack)) {
-                    dyes.add(stack);
-                } else {
+            if (stack.getItem() instanceof IDyeableGear) {
+                if (!target.isEmpty()) {
                     return ItemStack.EMPTY;
                 }
+                target = stack;
+            } else if (stack.has(DataComponents.DYE)) {
+                dyes.add(stack.getOrDefault(DataComponents.DYE, DyeColor.WHITE));
+            } else {
+                return ItemStack.EMPTY;
             }
         }
 
-        if (!toDye.isEmpty() && dyes.size() > 0) {
-            ItemStack toOutput = toDye.copy();
-            toOutput.setCount(Math.min(toOutput.getCount(), 1));
-
-            int oldColor = ((IDyeableGear) toOutput.getItem()).getDyedColor(toOutput);
-            float[] totalComponents = new float[]{(oldColor >> 16 & 0xFF) / 255.0F, (oldColor >> 8 & 0xFF) / 255.0F, (oldColor & 0xFF) / 255.0F};
-            float totalMaximum = Math.max(totalComponents[0], Math.max(totalComponents[1], totalComponents[2]));
-
-            for (ItemStack d : dyes) {
-                Optional<EnumDyeColor> colorValue = DyeUtils.colorFromStack(d);
-                if(colorValue.isPresent()) {
-                    float[] dyeColor = colorValue.get().getColorComponentValues();
-                    totalComponents[0] += dyeColor[0];
-                    totalComponents[1] += dyeColor[1];
-                    totalComponents[2] += dyeColor[2];
-                    totalMaximum += Math.max(dyeColor[0], Math.max(dyeColor[1], dyeColor[2]));
-                }
-            }
-
-            totalComponents[0] /= dyes.size() + 1;
-            totalComponents[1] /= dyes.size() + 1;
-            totalComponents[2] /= dyes.size() + 1;
-            totalMaximum /= dyes.size() + 1;
-
-            float gainFactor = totalMaximum / Math.max(totalComponents[0], Math.max(totalComponents[1], totalComponents[2]));
-            totalComponents[0] *= gainFactor;
-            totalComponents[1] *= gainFactor;
-            totalComponents[2] *= gainFactor;
-            int newColor = ((int) (totalComponents[0] * 255) << 16) + ((int) (totalComponents[1] * 255) << 8) + (int) (totalComponents[2] * 255);
-            ((IDyeableGear) toOutput.getItem()).setDyedColor(toOutput, newColor);
-            return toOutput;
+        if (target.isEmpty() || dyes.isEmpty()) {
+            return ItemStack.EMPTY;
         }
 
-        return ItemStack.EMPTY;
+        ItemStack result = DyedItemColor.applyDyes(target, dyes);
+        if (result.getItem() instanceof IDyeableGear gear) {
+            gear.setDyedColor(result, result.getOrDefault(DataComponents.DYED_COLOR, new DyedItemColor(0)).rgb());
+        }
+        return result;
+    }
+
+    @Override
+    public RecipeSerializer<DyeableItemRecipe> getSerializer() {
+        return ModRecipeTypesKAMI.DYEABLE_ITEM_SERIALIZER.get();
     }
 }

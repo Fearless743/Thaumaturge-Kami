@@ -1,0 +1,45 @@
+{
+  "type": "thaumaturge:arcane_workbench_shaped",
+  "crystals": [
+    {
+      "amount": 2,
+      "aspect": "thaumaturge:aer"
+    },
+    {
+      "amount": 2,
+      "aspect": "thaumaturge:terra"
+    },
+    {
+      "amount": 2,
+      "aspect": "thaumaturge:aqua"
+    },
+    {
+      "amount": 2,
+      "aspect": "thaumaturge:ignis"
+    },
+    {
+      "amount": 2,
+      "aspect": "thaumaturge:ordo"
+    },
+    {
+      "amount": 2,
+      "aspect": "thaumaturge:perditio"
+    }
+  ],
+  "key": {
+    "F": "thaumaturge:fabric",
+    "I": "kami:ichor"
+  },
+  "pattern": [
+    " F ",
+    "FIF"
+  ],
+  "research": {
+    "entry": "kami:ichorweave_fabric"
+  },
+  "result": {
+    "id": "kami:ichorweave_fabric",
+    "count": 3
+  },
+  "vis": 50
+}

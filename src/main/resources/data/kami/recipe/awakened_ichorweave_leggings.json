@@ -1,0 +1,38 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:aer"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:ignis"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:permutatio"
+    }
+  ],
+  "catalyst": "kami:ichorweave_leggings",
+  "components": [
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:awakened_ichorweave_leggings"
+  },
+  "result": {
+    "id": "kami:awakened_ichorweave_leggings",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  }
+}
