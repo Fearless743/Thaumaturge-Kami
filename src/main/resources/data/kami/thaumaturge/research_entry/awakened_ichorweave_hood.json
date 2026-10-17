@@ -1,0 +1,56 @@
+{
+  "category": "kami:zenith",
+  "name": "kami.research.awakened_ichorweave_hood.title",
+  "parents": [
+    "kami:ichorweave_armor",
+    "~kami:ichorium"
+  ],
+  "column": -5,
+  "row": -7,
+  "meta": [
+    "reverse",
+    "hidden"
+  ],
+  "icons": [
+    "kami:awakened_ichorweave_hood"
+  ],
+  "stages": [
+    {
+      "text": "kami.research.awakened_ichorweave_hood.stage.1",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "kami.research.awakened_ichorweave_hood.stage.2",
+      "recipes": [
+        "kami:awakened_ichorweave_hood"
+      ]
+    }
+  ],
+  "addenda": [
+    {
+      "text": "kami.research.awakened_ichorweave.addenda.1",
+      "required_research": [
+        "kami:awakened_ichorweave_hood",
+        "kami:awakened_ichorweave_robe",
+        "kami:awakened_ichorweave_leggings",
+        "kami:awakened_ichorweave_boots"
+      ]
+    }
+  ]
+}

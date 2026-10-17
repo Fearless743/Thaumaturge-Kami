@@ -1,0 +1,53 @@
+{
+  "category": "kami:zenith",
+  "name": "kami.research.awakened_ichorium_shovel.title",
+  "parents": [
+    "kami:ichorium_tools",
+    "~thaumaturge:elemental_tools"
+  ],
+  "column": 5,
+  "row": -5,
+  "meta": [
+    "reverse",
+    "hidden"
+  ],
+  "icons": [
+    "kami:awakened_ichorium_shovel"
+  ],
+  "stages": [
+    {
+      "text": "kami.research.awakened_ichorium_shovel.stage.1",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "kami.research.awakened_ichorium_shovel.stage.2",
+      "recipes": [
+        "kami:awakened_ichorium_shovel"
+      ]
+    }
+  ],
+  "addenda": [
+    {
+      "text": "kami.research.awakened_ichorium.addenda.1",
+      "required_research": [
+        "kami:awakened_ichorium_shovel"
+      ]
+    }
+  ]
+}

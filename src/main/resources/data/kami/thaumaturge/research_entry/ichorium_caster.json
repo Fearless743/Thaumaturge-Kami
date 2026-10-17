@@ -1,0 +1,49 @@
+{
+  "category": "kami:zenith",
+  "name": "kami.research.ichorium_caster.title",
+  "parents": [
+    "kami:bottomless_pouch"
+  ],
+  "column": 0,
+  "row": -8,
+  "meta": [
+    "reverse",
+    "hidden"
+  ],
+  "icons": [
+    "kami:ichorium_caster"
+  ],
+  "stages": [
+    {
+      "text": "kami.research.ichorium_caster.stage.1",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 2
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:auromancy",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:auromancy",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "kami.research.ichorium_caster.stage.2",
+      "recipes": [
+        "kami:ichorium_caster"
+      ]
+    }
+  ],
+  "addenda": [
+    {
+      "text": "kami.research.ichorium_caster.addenda.1"
+    }
+  ]
+}

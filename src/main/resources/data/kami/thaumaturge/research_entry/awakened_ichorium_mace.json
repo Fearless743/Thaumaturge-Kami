@@ -1,0 +1,53 @@
+{
+  "category": "kami:zenith",
+  "name": "kami.research.awakened_ichorium_mace.title",
+  "parents": [
+    "kami:ichorium_weapons",
+    "~thaumaturge:elemental_tools"
+  ],
+  "column": 6,
+  "row": -5,
+  "meta": [
+    "reverse",
+    "hidden"
+  ],
+  "icons": [
+    "kami:awakened_ichorium_mace"
+  ],
+  "stages": [
+    {
+      "text": "kami.research.awakened_ichorium_mace.stage.1",
+      "required_knowledge": [
+        {
+          "type": "theory",
+          "category": "thaumaturge:eldritch",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "kami.research.awakened_ichorium_mace.stage.2",
+      "recipes": [
+        "kami:awakened_ichorium_mace"
+      ]
+    }
+  ],
+  "addenda": [
+    {
+      "text": "kami.research.awakened_ichorium.addenda.1",
+      "required_research": [
+        "kami:awakened_ichorium_mace"
+      ]
+    }
+  ]
+}

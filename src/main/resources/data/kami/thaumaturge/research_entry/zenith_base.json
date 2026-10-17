@@ -1,0 +1,32 @@
+{
+  "category": "kami:zenith",
+  "name": "kami.research.zenith_base.title",
+  "parents": [
+    "~thaumaturge:base_eldritch",
+    "~thaumaturge:flux_rift",
+    "~thaumaturge:primal_crusher",
+    "~thaumaturge:primordial_pearl",
+    "~thaumaturge:void_robe_armor",
+    "~thaumaturge:voidseer_pearl",
+    "~thaumaturge:void_siphon",
+    "~thaumaturge:warp"
+  ],
+  "siblings": [
+    "thaumaturge:base_eldritch"
+  ],
+  "column": 0,
+  "row": 0,
+  "meta": [
+    "round",
+    "spiky"
+  ],
+  "icons": [
+    "kami:textures/research/r_zenith.png"
+  ],
+  "stages": [
+    {
+      "text": "kami.research.zenith_base.stage.1",
+      "warp": 5
+    }
+  ]
+}

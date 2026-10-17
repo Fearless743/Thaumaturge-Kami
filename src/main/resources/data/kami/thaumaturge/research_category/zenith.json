@@ -1,0 +1,36 @@
+{
+  "background": "kami:textures/gui/research_background.png",
+  "icon": "kami:textures/research/r_zenith.png",
+  "index": 8,
+  "formula": [
+    {
+      "aspect": "thaumaturge:praecantatio",
+      "amount": 20
+    },
+    {
+      "aspect": "thaumaturge:alienis",
+      "amount": 20
+    },
+    {
+      "aspect": "thaumaturge:cognitio",
+      "amount": 15
+    },
+    {
+      "aspect": "thaumaturge:vitium",
+      "amount": 15
+    },
+    {
+      "aspect": "thaumaturge:tenebrae",
+      "amount": 10
+    },
+    {
+      "aspect": "thaumaturge:vacuos",
+      "amount": 10
+    },
+    {
+      "aspect": "thaumaturge:motus",
+      "amount": 10
+    }
+  ],
+  "required_research": "thaumaturge:base_eldritch"
+}

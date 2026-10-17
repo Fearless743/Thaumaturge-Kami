@@ -1,0 +1,41 @@
+{
+  "category": "kami:zenith",
+  "name": "kami.research.ichorweave_armor.title",
+  "parents": [
+    "kami:ichorweave_fabric"
+  ],
+  "column": -3,
+  "row": -4,
+  "icons": [
+    "kami:ichorweave_hood",
+    "kami:ichorweave_robe",
+    "kami:ichorweave_leggings",
+    "kami:ichorweave_boots"
+  ],
+  "stages": [
+    {
+      "text": "kami.research.ichorweave_armor.stage.1",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "kami.research.ichorweave_armor.stage.2",
+      "recipes": [
+        "kami:ichorweave_hood",
+        "kami:ichorweave_robe",
+        "kami:ichorweave_leggings",
+        "kami:ichorweave_boots"
+      ]
+    }
+  ]
+}

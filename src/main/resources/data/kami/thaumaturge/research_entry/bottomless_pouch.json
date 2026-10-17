@@ -1,0 +1,41 @@
+{
+  "category": "kami:zenith",
+  "name": "kami.research.bottomless_pouch.title",
+  "parents": [
+    "kami:ichorium",
+    "kami:ichorweave_fabric",
+    "~thaumaturge:focus_pouch"
+  ],
+  "column": 0,
+  "row": -6,
+  "meta": [
+    "reverse",
+    "hidden"
+  ],
+  "icons": [
+    "kami:focus_pouch"
+  ],
+  "stages": [
+    {
+      "text": "kami.research.bottomless_pouch.stage.1",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 3
+        },
+        {
+          "type": "observation",
+          "category": "thaumaturge:artifice",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "text": "kami.research.bottomless_pouch.stage.2",
+      "recipes": [
+        "kami:bottomless_pouch"
+      ]
+    }
+  ]
+}

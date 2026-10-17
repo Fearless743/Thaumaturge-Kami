@@ -1,0 +1,37 @@
+{
+  "category": "kami:zenith",
+  "name": "kami.research.ichor.title",
+  "parents": [
+    "kami:zenith_base"
+  ],
+  "column": 0,
+  "row": -2,
+  "icons": [
+    "kami:ichor"
+  ],
+  "stages": [
+    {
+      "text": "kami.research.ichor.stage.1",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "kami.research.ichor.stage.2",
+      "recipes": [
+        "kami:ichor",
+        "kami:ichor_to_ichor_block",
+        "kami:ichor_block_to_ichor"
+      ]
+    }
+  ]
+}

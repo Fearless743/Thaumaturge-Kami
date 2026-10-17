@@ -1,0 +1,39 @@
+{
+  "category": "kami:zenith",
+  "name": "kami.research.ichorium.title",
+  "parents": [
+    "kami:ichor"
+  ],
+  "column": 1,
+  "row": -4,
+  "icons": [
+    "kami:ichorium_ingot"
+  ],
+  "stages": [
+    {
+      "text": "kami.research.ichorium.stage.1",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:infusion",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "kami.research.ichorium.stage.2",
+      "recipes": [
+        "kami:ichorium_ingot",
+        "kami:ichorium_ingot_to_block",
+        "kami:ichorium_block_to_ingot",
+        "kami:ichorium_ingot_to_nugget",
+        "kami:ichorium_nugget_to_ingot"
+      ]
+    }
+  ]
+}

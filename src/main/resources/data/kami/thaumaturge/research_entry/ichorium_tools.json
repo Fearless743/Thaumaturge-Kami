@@ -1,0 +1,46 @@
+{
+  "category": "kami:zenith",
+  "name": "kami.research.ichorium_tools.title",
+  "parents": [
+    "kami:ichorium"
+  ],
+  "column": 3,
+  "row": -4,
+  "icons": [
+    "kami:ichorium_sword",
+    "kami:ichorium_shovel",
+    "kami:ichorium_pickaxe",
+    "kami:ichorium_axe",
+    "kami:ichorium_shield",
+    "kami:ichorium_trident"
+  ],
+  "stages": [
+    {
+      "text": "kami.research.ichorium_tools.stage.1",
+      "required_knowledge": [
+        {
+          "type": "observation",
+          "category": "thaumaturge:eldritch",
+          "amount": 2
+        },
+        {
+          "type": "theory",
+          "category": "thaumaturge:artifice",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "text": "kami.research.ichorium_tools.stage.2",
+      "recipes": [
+        "kami:ichorium_sword",
+        "kami:ichorium_shovel",
+        "kami:ichorium_pickaxe",
+        "kami:ichorium_axe",
+        "kami:ichorium_shield",
+        "kami:ichorium_trident",
+        "kami:blessed_silverwood_rod"
+      ]
+    }
+  ]
+}

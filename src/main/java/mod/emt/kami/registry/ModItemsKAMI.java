@@ -1,6 +1,5 @@
 package mod.emt.kami.registry;
 
-
 import mod.emt.kami.Kami;
 import mod.emt.kami.items.armor.ItemAwakenedArmor;
 import mod.emt.kami.items.armor.ItemIchorweaveArmor;
@@ -8,71 +7,67 @@ import mod.emt.kami.items.base.ItemBase;
 import mod.emt.kami.items.base.ItemBaseEnchanted;
 import mod.emt.kami.items.baubles.ItemIchorFocusPouch;
 import mod.emt.kami.items.tools.*;
-import net.minecraft.inventory.EntityEquipmentSlot;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemArmor;
-import net.minecraftforge.common.util.EnumHelper;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
-import java.util.ArrayList;
-import java.util.List;
+public final class ModItemsKAMI {
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Kami.MOD_ID);
 
-public class ModItemsKAMI {
-    public static ItemArmor.ArmorMaterial MATERIAL_ICHORCLOTH = EnumHelper.addArmorMaterial("ICHORCLOTH", Kami.MOD_ID + ":ichorcloth",-1, new int[] {3, 6, 8, 3}, 20, ModSoundsKAMI.EQUIP_ROBE.getSoundEvent(), 3.0F);
-    public static Item.ToolMaterial MATERIAL_ICHORIUM = EnumHelper.addToolMaterial("ICHORIUM", 5, -1, 10, 4f, 25);
+    //registerItem/registerSimpleBlockItem (rather than register) inject the item's registry id into
+    //its properties, which Item dereferences to build the description id.
+    public static final DeferredItem<Item> ICHOR = ITEMS.registerItem("ichor", ItemBase::new);
+    public static final DeferredItem<Item> ICHORWEAVE_FABRIC = ITEMS.registerItem("ichorweave_fabric", ItemBase::new);
+    public static final DeferredItem<Item> ICHORIUM_INGOT = ITEMS.registerItem("ichorium_ingot", ItemBase::new);
+    public static final DeferredItem<Item> ICHORIUM_NUGGET = ITEMS.registerItem("ichorium_nugget", ItemBase::new);
+    public static final DeferredItem<Item> BLESSED_SILVERWOOD_ROD = ITEMS.registerItem("blessed_silverwood_rod", ItemBaseEnchanted::new);
+    public static final DeferredItem<Item> FOCUS_POUCH = ITEMS.registerItem("focus_pouch", ItemIchorFocusPouch::new);
 
-    public static Item AWAKENED_ICHORIUM_AXE;
-    public static Item AWAKENED_ICHORIUM_SICKLE;
-    public static Item AWAKENED_ICHORIUM_PICKAXE;
-    public static Item AWAKENED_ICHORIUM_SHOVEL;
-    public static Item AWAKENED_ICHORIUM_SWORD;
-    public static ItemArmor AWAKENED_ICHORWEAVE_BOOTS;
-    public static ItemArmor AWAKENED_ICHORWEAVE_HOOD;
-    public static ItemArmor AWAKENED_ICHORWEAVE_LEGGINGS;
-    public static ItemArmor AWAKENED_ICHORWEAVE_ROBE;
-    public static Item BLESSED_SILVERWOOD_ROD;
-    public static Item FOCUS_POUCH;
-    public static Item ICHOR;
-    public static Item ICHORIUM_AXE;
-    public static ItemIchoriumCaster ICHORIUM_CASTER;
-    public static Item ICHORIUM_HOE;
-    public static Item ICHORIUM_INGOT;
-    public static Item ICHORIUM_NUGGET;
-    public static Item ICHORIUM_PICKAXE;
-    public static Item ICHORIUM_SHOVEL;
-    public static Item ICHORIUM_SWORD;
-    public static Item ICHORWEAVE_FABRIC;
-    public static ItemArmor ICHORWEAVE_BOOTS;
-    public static ItemArmor ICHORWEAVE_HOOD;
-    public static ItemArmor ICHORWEAVE_LEGGINGS;
-    public static ItemArmor ICHORWEAVE_ROBE;
+    public static final DeferredItem<Item> ICHORWEAVE_HOOD = ITEMS.registerItem("ichorweave_hood",
+            properties -> new ItemIchorweaveArmor(EquipmentSlot.HEAD, properties));
+    public static final DeferredItem<Item> ICHORWEAVE_ROBE = ITEMS.registerItem("ichorweave_robe",
+            properties -> new ItemIchorweaveArmor(EquipmentSlot.CHEST, properties));
+    public static final DeferredItem<Item> ICHORWEAVE_LEGGINGS = ITEMS.registerItem("ichorweave_leggings",
+            properties -> new ItemIchorweaveArmor(EquipmentSlot.LEGS, properties));
+    public static final DeferredItem<Item> ICHORWEAVE_BOOTS = ITEMS.registerItem("ichorweave_boots",
+            properties -> new ItemIchorweaveArmor(EquipmentSlot.FEET, properties));
 
-    public static final List<Item> MOD_ITEMS = new ArrayList<>();
+    public static final DeferredItem<Item> AWAKENED_ICHORWEAVE_HOOD = ITEMS.registerItem("awakened_ichorweave_hood",
+            properties -> new ItemAwakenedArmor(EquipmentSlot.HEAD, properties));
+    public static final DeferredItem<Item> AWAKENED_ICHORWEAVE_ROBE = ITEMS.registerItem("awakened_ichorweave_robe",
+            properties -> new ItemAwakenedArmor(EquipmentSlot.CHEST, properties));
+    public static final DeferredItem<Item> AWAKENED_ICHORWEAVE_LEGGINGS = ITEMS.registerItem("awakened_ichorweave_leggings",
+            properties -> new ItemAwakenedArmor(EquipmentSlot.LEGS, properties));
+    public static final DeferredItem<Item> AWAKENED_ICHORWEAVE_BOOTS = ITEMS.registerItem("awakened_ichorweave_boots",
+            properties -> new ItemAwakenedArmor(EquipmentSlot.FEET, properties));
 
-    public static void initItems() {
-        MOD_ITEMS.add(ICHOR = new ItemBase("ichor", "ichor"));
-        MOD_ITEMS.add(ICHORWEAVE_FABRIC = new ItemBase("ichorweave_fabric", "fabricIchor"));
-        MOD_ITEMS.add(ICHORIUM_INGOT = new ItemBase("ichorium_ingot", "ingotIchorium"));
-        MOD_ITEMS.add(ICHORIUM_NUGGET = new ItemBase("ichorium_nugget", "nuggetIchorium"));
-        MOD_ITEMS.add(BLESSED_SILVERWOOD_ROD = new ItemBaseEnchanted("blessed_silverwood_rod", null));
-        MOD_ITEMS.add(FOCUS_POUCH = new ItemIchorFocusPouch());
-        MOD_ITEMS.add(ICHORWEAVE_HOOD = new ItemIchorweaveArmor("ichorweave_hood", EntityEquipmentSlot.HEAD));
-        MOD_ITEMS.add(ICHORWEAVE_ROBE = new ItemIchorweaveArmor("ichorweave_robe", EntityEquipmentSlot.CHEST));
-        MOD_ITEMS.add(ICHORWEAVE_LEGGINGS = new ItemIchorweaveArmor("ichorweave_leggings", EntityEquipmentSlot.LEGS));
-        MOD_ITEMS.add(ICHORWEAVE_BOOTS = new ItemIchorweaveArmor("ichorweave_boots", EntityEquipmentSlot.FEET));
-        MOD_ITEMS.add(AWAKENED_ICHORWEAVE_HOOD = new ItemAwakenedArmor("awakened_ichorweave_hood", EntityEquipmentSlot.HEAD));
-        MOD_ITEMS.add(AWAKENED_ICHORWEAVE_ROBE = new ItemAwakenedArmor("awakened_ichorweave_robe", EntityEquipmentSlot.CHEST));
-        MOD_ITEMS.add(AWAKENED_ICHORWEAVE_LEGGINGS = new ItemAwakenedArmor("awakened_ichorweave_leggings", EntityEquipmentSlot.LEGS));
-        MOD_ITEMS.add(AWAKENED_ICHORWEAVE_BOOTS = new ItemAwakenedArmor("awakened_ichorweave_boots", EntityEquipmentSlot.FEET));
-        MOD_ITEMS.add(ICHORIUM_SWORD = new ItemIchoriumSword());
-        MOD_ITEMS.add(ICHORIUM_SHOVEL = new ItemIchoriumShovel());
-        MOD_ITEMS.add(ICHORIUM_PICKAXE = new ItemIchoriumPickaxe());
-        MOD_ITEMS.add(ICHORIUM_AXE = new ItemIchoriumAxe());
-        MOD_ITEMS.add(ICHORIUM_HOE = new ItemIchoriumHoe());
-        MOD_ITEMS.add(AWAKENED_ICHORIUM_SWORD = new ItemAwakenedSword());
-        MOD_ITEMS.add(AWAKENED_ICHORIUM_SHOVEL = new ItemAwakenedShovel());
-        MOD_ITEMS.add(AWAKENED_ICHORIUM_PICKAXE = new ItemAwakenedPickaxe());
-        MOD_ITEMS.add(AWAKENED_ICHORIUM_AXE = new ItemAwakenedAxe());
-        MOD_ITEMS.add(AWAKENED_ICHORIUM_SICKLE = new ItemAwakenedSickle());
-        MOD_ITEMS.add(ICHORIUM_CASTER = new ItemIchoriumCaster());
-    }
+    public static final DeferredItem<Item> ICHORIUM_SWORD = ITEMS.registerItem("ichorium_sword", ItemIchoriumSword::new);
+    public static final DeferredItem<Item> ICHORIUM_SHOVEL = ITEMS.registerItem("ichorium_shovel", ItemIchoriumShovel::new);
+    public static final DeferredItem<Item> ICHORIUM_PICKAXE = ITEMS.registerItem("ichorium_pickaxe", ItemIchoriumPickaxe::new);
+    public static final DeferredItem<Item> ICHORIUM_AXE = ITEMS.registerItem("ichorium_axe", ItemIchoriumAxe::new);
+    public static final DeferredItem<Item> ICHORIUM_HOE = ITEMS.registerItem("ichorium_hoe", ItemIchoriumHoe::new);
+    public static final DeferredItem<Item> ICHORIUM_SPEAR = ITEMS.registerItem("ichorium_spear", ItemIchoriumSpear::new);
+    public static final DeferredItem<Item> ICHORIUM_HAMMER = ITEMS.registerItem("ichorium_mace", ItemIchoriumHammer::new);
+    public static final DeferredItem<Item> ICHORIUM_SHIELD = ITEMS.registerItem("ichorium_shield", ItemIchoriumShield::new);
+    public static final DeferredItem<Item> ICHORIUM_TRIDENT = ITEMS.registerItem("ichorium_trident", properties ->
+            new ItemIchoriumTrident(properties.durability(3000).rarity(Rarity.EPIC).fireResistant()
+                    .attributes(ItemIchoriumTrident.createModifiers())));
+
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_SWORD = ITEMS.registerItem("awakened_ichorium_sword", ItemAwakenedSword::new);
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_SHOVEL = ITEMS.registerItem("awakened_ichorium_shovel", ItemAwakenedShovel::new);
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_PICKAXE = ITEMS.registerItem("awakened_ichorium_pickaxe", ItemAwakenedPickaxe::new);
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_AXE = ITEMS.registerItem("awakened_ichorium_axe", ItemAwakenedAxe::new);
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_SICKLE = ITEMS.registerItem("awakened_ichorium_sickle", ItemAwakenedSickle::new);
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_SPEAR = ITEMS.registerItem("awakened_ichorium_spear", ItemAwakenedSpear::new);
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_MACE = ITEMS.registerItem("awakened_ichorium_mace", ItemAwakenedHammer::new);
+
+    public static final DeferredItem<Item> ICHORIUM_CASTER = ITEMS.registerItem("ichorium_caster", ItemIchoriumCaster::new);
+
+    public static final DeferredItem<BlockItem> ICHOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("ichor_block", ModBlocksKAMI.ICHOR_BLOCK);
+    public static final DeferredItem<BlockItem> ICHORIUM_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("ichorium_block", ModBlocksKAMI.ICHORIUM_BLOCK);
+
+    private ModItemsKAMI() {}
 }
