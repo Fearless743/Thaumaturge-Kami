@@ -1,8 +1,12 @@
-# A deployment template that works out of the box
-# It supports these objectives:
-# - Deploy to Maven (Build Job) [Secrets: MAVEN_USER, MAVEN_PASS]
-# - Deploy to CurseForge (Upload Job) [Secrets: CURSEFORGE_TOKEN]
-# - Deploy to Modrinth (Upload Job) [Secrets: MODRINTH_TOKEN]
+# Deployment workflow for Thaumaturge Kami
+# - Triggered by pushing a version tag (e.g. 1.1.0)
+# - Builds the mod and publishes it to CurseForge via mc-publish
+#
+# Required repository secrets:
+# - CURSEFORGE_TOKEN: CurseForge API token (https://legacy.curseforge.com/account/api-tokens)
+# - CF_PROJECT_ID:    Numeric CurseForge project ID (project page -> About -> Project ID)
+#
+# Publishing is gated by `publish_to_curseforge` in gradle.properties.
 
 name: Deploy
 
@@ -12,14 +16,20 @@ on:
       - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Grant Execute Permission for gradlew
-        run: chmod +x gradlew
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'zulu'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
 
       - name: Read gradle.properties
         uses: BrycensRanch/read-properties-action@v1
@@ -28,34 +38,58 @@ jobs:
           file: gradle.properties
           all: true
 
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '25'
-          distribution: 'zulu'
-          cache: gradle
+      - name: Verify tag matches mod version
+        run: |
+          if [ "${GITHUB_REF_NAME}" != "${{ steps.properties.outputs.mod_version }}" ]; then
+            echo "::error::Tag '${GITHUB_REF_NAME}' does not match mod_version '${{ steps.properties.outputs.mod_version }}' from gradle.properties"
+            exit 1
+          fi
 
-      - name: Publish to Maven
-        if: steps.properties.outputs.publish_to_maven == 'true' && steps.properties.outputs.publish_to_local_maven == 'true'
-        uses: gradle/gradle-build-action@v2
+      - name: Build
+        run: ./gradlew build --stacktrace
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          arguments: |
-            publish
-            -P${{ steps.properties.outputs.maven_name }}Username=${{ secrets.MAVEN_USER }}
-            -P${{ steps.properties.outputs.maven_name }}Password=${{ secrets.MAVEN_PASS }}
+          name: ${{ steps.properties.outputs.mod_id }}-${{ steps.properties.outputs.mod_version }}
+          path: build/libs/*.jar
+          if-no-files-found: error
+
+      # Pulls the "## <version>" section out of CHANGELOG.md so the CurseForge
+      # release only lists notes relevant to this version.
+      - name: Extract changelog for current version
+        if: steps.properties.outputs.publish_to_curseforge == 'true'
+        run: |
+          awk -v ver='${{ steps.properties.outputs.mod_version }}' '
+            BEGIN { gsub(/\./, "\\.", ver) }
+            $0 ~ "^## " ver "([[:space:]]|$)" { flag = 1; next }
+            flag && /^## / { exit }
+            flag && /^---[[:space:]]*$/ { next }
+            flag { print }
+          ' CHANGELOG.md > release-notes.md
+          # Fall back to the full changelog when the section is missing
+          if [ ! -s release-notes.md ]; then
+            cp CHANGELOG.md release-notes.md
+          fi
 
       - name: Publish to CurseForge
         if: steps.properties.outputs.publish_to_curseforge == 'true'
-        uses: gradle/gradle-build-action@v2
-        env:
-          CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+        uses: Kir-Antipov/mc-publish@v3
         with:
-          arguments: curseforge
+          curseforge-id: ${{ secrets.CF_PROJECT_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
 
-      - name: Publish to Modrinth
-        if: steps.properties.outputs.publish_to_modrinth == 'true'
-        uses: gradle/gradle-build-action@v2
-        env:
-          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
-        with:
-          arguments: modrinth
+          files: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
+
+          name: ${{ steps.properties.outputs.mod_name }} ${{ steps.properties.outputs.mod_version }}
+          version: ${{ steps.properties.outputs.mod_version }}
+          version-type: ${{ steps.properties.outputs.release_type }}
+          changelog-file: release-notes.md
+
+          loaders: neoforge
+          game-versions: ${{ steps.properties.outputs.minecraft_version }}
+
+          dependencies: |
+            thaumaturge(required)
