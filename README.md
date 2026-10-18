@@ -1,6 +1,6 @@
 # Thaumaturge Kami
 
-[![GitHub](https://img.shields.io/badge/GitHub-Thaumic--Modding--Team%2FKamiReborn-181717.svg?logo=github&style=for-the-badge)](https://github.com/Thaumic-Modding-Team/KamiReborn)
+[![GitHub](https://img.shields.io/badge/GitHub-Fearless743%2FThaumaturge--Kami-181717.svg?logo=github&style=for-the-badge)](https://github.com/Fearless743/Thaumaturge-Kami)
 [![Requires Thaumaturge](https://img.shields.io/badge/Requires-Thaumaturge-C48733.svg?labelColor=A45104&style=for-the-badge)](https://github.com/Leclowndu93150/Thaumaturge)
 
 **Thaumaturge Kami** is a from-scratch port and rewrite of the KAMI content from Thaumic Tinkerer, built for [Thaumaturge](https://github.com/Leclowndu93150/Thaumaturge) — the successor of Thaumcraft on Minecraft 26.1 (NeoForge). Its focus is high-tier endgame content: the **Zenith** research branch and equipment forged from Ichor, the blood of the gods.
@@ -71,6 +71,7 @@ Almost everything is tunable in the config file (`config/kami.toml`):
 
 ## 🙏 Special Thanks
 
+- **IcarussOne** and **Invadermonky** (Elite Modding Team) for the original [KamiReborn](https://github.com/Thaumic-Modding-Team/KamiReborn), which this NeoForge 26.1 port is based on
 - The original Thaumic Tinkerer developers ~ pixlepix, Vazkii, and others
 - Fakeginkgo for the Fake Thaummy Pack, from which some textures are used
 - [Leclowndu93150](https://github.com/Leclowndu93150) for Thaumaturge
@@ -78,3 +79,5 @@ Almost everything is tunable in the config file (`config/kami.toml`):
 ## Licensing
 
 Code and new assets (textures, sounds, models, etc) for this mod are **All Rights Reserved** (see [LICENSE](LICENSE) and [LICENSE_ASSETS](LICENSE_ASSETS)). Original Thaumic Tinkerer assets are **CC BY-NC-SA 3.0 Unported** (see [LICENSE_ASSETS_TT](LICENSE_ASSETS_TT)).
+
+This is a port of [KamiReborn](https://github.com/Thaumic-Modding-Team/KamiReborn) by the Elite Modding Team. The code and assets carried over from KamiReborn remain **© 2026 Elite Modding Team, All Rights Reserved**; redistribution requires their express permission.
