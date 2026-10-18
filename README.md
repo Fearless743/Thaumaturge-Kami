@@ -3,9 +3,9 @@
 [![GitHub](https://img.shields.io/badge/GitHub-Fearless743%2FThaumaturge--Kami-181717.svg?logo=github&style=for-the-badge)](https://github.com/Fearless743/Thaumaturge-Kami)
 [![Requires Thaumaturge](https://img.shields.io/badge/Requires-Thaumaturge-C48733.svg?labelColor=A45104&style=for-the-badge)](https://github.com/Leclowndu93150/Thaumaturge)
 
-**Thaumaturge Kami** is a from-scratch port and rewrite of the KAMI content from Thaumic Tinkerer, built for [Thaumaturge](https://github.com/Leclowndu93150/Thaumaturge) — the successor of Thaumcraft on Minecraft 26.1 (NeoForge). Its focus is high-tier endgame content: the **Zenith** research branch and equipment forged from Ichor, the blood of the gods.
+**Thaumaturge Kami** is a port of the KAMI content from Thaumic Tinkerer, based on [KamiReborn](https://github.com/Thaumic-Modding-Team/KamiReborn) by the Elite Modding Team and rebuilt for [Thaumaturge](https://github.com/Leclowndu93150/Thaumaturge) — the successor of Thaumcraft on Minecraft 26.1 (NeoForge). Its focus is high-tier endgame content: the **Zenith** research branch and equipment forged from Ichor, the blood of the gods.
 
-Unlike the original mod, **Thaumic Tinkerer is not required**. If you want its content back, check out the reborn counterpart: [Thaumic Tinkerer: Reborn](https://www.curseforge.com/minecraft/mc-mods/thaumic-tinkerer-reborn).
+Unlike the original KAMI, **Thaumic Tinkerer is not required**. If you want its content back, check out the reborn counterpart: [Thaumic Tinkerer: Reborn](https://www.curseforge.com/minecraft/mc-mods/thaumic-tinkerer-reborn).
 
 ## Requirements
 
@@ -78,6 +78,4 @@ Almost everything is tunable in the config file (`config/kami.toml`):
 
 ## Licensing
 
-Code and new assets (textures, sounds, models, etc) for this mod are **All Rights Reserved** (see [LICENSE](LICENSE) and [LICENSE_ASSETS](LICENSE_ASSETS)). Original Thaumic Tinkerer assets are **CC BY-NC-SA 3.0 Unported** (see [LICENSE_ASSETS_TT](LICENSE_ASSETS_TT)).
-
-This is a port of [KamiReborn](https://github.com/Thaumic-Modding-Team/KamiReborn) by the Elite Modding Team. The code and assets carried over from KamiReborn remain **© 2026 Elite Modding Team, All Rights Reserved**; redistribution requires their express permission.
+All code and assets in this mod are **All Rights Reserved** (see [LICENSE](LICENSE) and [LICENSE_ASSETS](LICENSE_ASSETS)): new work is © 2026 Fearless743, while the code and assets carried over from [KamiReborn](https://github.com/Thaumic-Modding-Team/KamiReborn) remain **© 2026 Elite Modding Team**, and redistributing their material requires their express permission. Original Thaumic Tinkerer assets are **CC BY-NC-SA 3.0 Unported** (see [LICENSE_ASSETS_TT](LICENSE_ASSETS_TT)).
