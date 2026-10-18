@@ -1,0 +1,26 @@
+{
+  "type": "thaumaturge:arcane_workbench_shaped",
+  "crystals": [
+    {
+      "amount": 8,
+      "aspect": "thaumaturge:ordo"
+    }
+  ],
+  "key": {
+    "I": "kami:ichorium_ingot"
+  },
+  "pattern": [
+    "III",
+    "III"
+  ],
+  "research": {
+    "entry": "kami:ichorium_tools"
+  },
+  "result": {
+    "id": "kami:ichorium_shield",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  },
+  "vis": 250
+}

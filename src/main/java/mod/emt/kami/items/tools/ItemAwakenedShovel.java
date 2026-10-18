@@ -86,6 +86,9 @@ public class ItemAwakenedShovel extends ItemIchoriumShovel implements IAreaBreak
             return InteractionResult.SUCCESS;
         }
         if (hand == InteractionHand.MAIN_HAND) {
+            // Entering the use state must be explicit on 26.1: returning CONSUME alone never
+            // starts it, so the release hooks (the bury sweep) would never run.
+            player.startUsingItem(hand);
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;
@@ -99,7 +102,9 @@ public class ItemAwakenedShovel extends ItemIchoriumShovel implements IAreaBreak
         }
         int depth = Math.min(MAX_DEPTH, duration / 10);
         EnumBuryMode mode = EnumBuryMode.getMode(stack);
-        AABB area = player.getBoundingBox().inflate(depth, 2.0D, depth);
+        // Anchored on the feet block (like the 1.12 original): the area covers the player's own
+        // block plus `depth` blocks on every side, i.e. a reach of 1+depth from the player.
+        AABB area = new AABB(player.blockPosition()).inflate(depth, 2.0D, depth);
         for (LivingEntity target : level.getEntitiesOfClass(LivingEntity.class, area, mode::isEntityValid)) {
             if (!level.isClientSide()) {
                 level.playSound(null, target.blockPosition(), ModSoundsKAMI.ITEM_ICHOR_BURY.get(),

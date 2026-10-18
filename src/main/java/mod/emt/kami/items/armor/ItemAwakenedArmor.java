@@ -147,13 +147,13 @@ public class ItemAwakenedArmor extends ItemIchorweaveArmor {
     }
 
     protected void tickChestplate(Player player) {
-        //Creative flight and no fall damage.
+        //Creative flight; fall damage is negated by EventHandler (cancelling the damage event
+        //instead of zeroing fallDistance, which would disable the mallet's smash detection).
         if (!player.getAbilities().mayfly) {
             player.getAbilities().mayfly = true;
             CommonEventHandler.FLYING_PLAYERS.add(PlayerHelper.getUUIDFromPlayer(player));
             player.onUpdateAbilities();
         }
-        player.fallDistance = 0.0F;
     }
 
     protected void tickLeggings(Player player) {
@@ -230,6 +230,12 @@ public class ItemAwakenedArmor extends ItemIchorweaveArmor {
         @SubscribeEvent
         public static void onIncomingDamage(LivingIncomingDamageEvent event) {
             LivingEntity entity = event.getEntity();
+            //The robe negates fall damage entirely; this deliberately leaves fallDistance intact so
+            //fall-triggered weapon effects (the mallet's smash attacks) still detect the fall.
+            if (hasChest(entity) && event.getSource().is(net.minecraft.world.damagesource.DamageTypes.FALL)) {
+                event.setCanceled(true);
+                return;
+            }
             if (hasHelm(entity) && hasChest(entity) && hasLeggings(entity) && hasBoots(entity)) {
                 event.setAmount(event.getAmount() * (1.0F - SET_DAMAGE_REDUCTION));
             }

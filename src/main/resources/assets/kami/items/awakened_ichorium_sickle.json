@@ -1,6 +1,41 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "kami:item/awakened_ichorium_sickle"
+    "type": "minecraft:range_dispatch",
+    "property": "kami:mode_component",
+    "component": "kami:harvest_mode",
+    "entries": [
+      {
+        "threshold": 1.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_sickle_purple"
+        }
+      },
+      {
+        "threshold": 2.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_sickle_green"
+        }
+      },
+      {
+        "threshold": 3.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_sickle_blue"
+        }
+      },
+      {
+        "threshold": 4.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_sickle_red"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "kami:item/awakened_ichorium_sickle"
+    }
   }
 }

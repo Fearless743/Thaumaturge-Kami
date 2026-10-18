@@ -2,25 +2,5 @@
   "parent": "minecraft:item/handheld",
   "textures": {
     "layer0": "kami:item/awakened_ichorium_axe_inactive"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "impact_mode": 1
-      },
-      "model": "kami:item/awakened_ichorium_axe_blue"
-    },
-    {
-      "predicate": {
-        "impact_mode": 2
-      },
-      "model": "kami:item/awakened_ichorium_axe_green"
-    },
-    {
-      "predicate": {
-        "impact_mode": 3
-      },
-      "model": "kami:item/awakened_ichorium_axe_red"
-    }
-  ]
+  }
 }

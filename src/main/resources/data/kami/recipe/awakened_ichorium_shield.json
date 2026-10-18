@@ -1,0 +1,46 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:vinculum"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:praemunio"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:terra"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:ordo"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:praecantatio"
+    }
+  ],
+  "catalyst": "kami:ichorium_shield",
+  "components": [
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:awakened_ichorium_shield"
+  },
+  "result": {
+    "id": "kami:awakened_ichorium_shield",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:aqua"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:aer"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:potentia"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:motus"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:praecantatio"
+    }
+  ],
+  "catalyst": "kami:ichorium_trident",
+  "components": [
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:awakened_ichorium_trident"
+  },
+  "result": {
+    "id": "kami:awakened_ichorium_trident",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  }
+}

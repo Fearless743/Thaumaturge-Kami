@@ -1,6 +1,34 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "kami:item/awakened_ichorium_axe"
+    "type": "minecraft:range_dispatch",
+    "property": "kami:mode_component",
+    "component": "kami:impact_mode",
+    "entries": [
+      {
+        "threshold": 1.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_axe_blue"
+        }
+      },
+      {
+        "threshold": 2.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_axe_green"
+        }
+      },
+      {
+        "threshold": 3.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_axe_red"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "kami:item/awakened_ichorium_axe"
+    }
   }
 }

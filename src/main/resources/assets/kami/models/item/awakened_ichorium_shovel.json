@@ -2,25 +2,5 @@
   "parent": "minecraft:item/handheld",
   "textures": {
     "layer0": "kami:item/awakened_ichorium_shovel_inactive"
-  },
-  "overrides": [
-    {
-      "predicate": {
-        "bury_area": 1
-      },
-      "model": "kami:item/awakened_ichorium_shovel_green"
-    },
-    {
-      "predicate": {
-        "bury_area": 2
-      },
-      "model": "kami:item/awakened_ichorium_shovel_red"
-    },
-    {
-      "predicate": {
-        "bury_area": 3
-      },
-      "model": "kami:item/awakened_ichorium_shovel_blue"
-    }
-  ]
+  }
 }

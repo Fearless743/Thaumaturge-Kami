@@ -71,20 +71,65 @@ public final class ConfigHandlerKami {
 
     public static class ToolCategory {
         public double titanSlayerDamage = 0.2;
+        public double wardReflectance = 0.25;
+        public double wardBarrierBoost = 1.5;
+        public double avalancheDamage = 0.4;
+        public double spellbreakerDamage = 8.0;
+        public double lungeDistance = 7.0;
+        public double lungeDamageMultiplier = 1.5;
 
         private final ModConfigSpec.DoubleValue titanSlayerSpec;
+        private final ModConfigSpec.DoubleValue wardReflectanceSpec;
+        private final ModConfigSpec.DoubleValue wardBarrierBoostSpec;
+        private final ModConfigSpec.DoubleValue avalancheDamageSpec;
+        private final ModConfigSpec.DoubleValue spellbreakerDamageSpec;
+        private final ModConfigSpec.DoubleValue lungeDistanceSpec;
+        private final ModConfigSpec.DoubleValue lungeDamageMultiplierSpec;
 
         ToolCategory(ModConfigSpec.Builder builder) {
             builder.comment("Tool Settings").push("tools");
             titanSlayerSpec = builder.comment(
-                            "The amount of damage, based on the percentage of max health of the target, a fully charged Titanslayer",
-                            "strike will deal. A value of 0.2 equates to 20% of the target's maximum health.")
+                            "The extra damage, based on a percentage of the target's max health, that a fully charged",
+                            "Titanslayer strike deals against attuned targets. It is added on top of the strike's own",
+                            "damage (attack attribute, enchantments, effects). A value of 0.2 equates to 20% of the",
+                            "target's maximum health.")
                     .defineInRange("titanSlayerDamage", 0.2, 0.0, 1.0);
+            wardReflectanceSpec = builder.comment(
+                            "The fraction of blocked damage the Ichorium Shield of the Warden reflects back at the attacker",
+                            "while in Reflect mode. A value of 0.25 equates to 25% of the blocked damage.")
+                    .defineInRange("wardReflectance", 0.25, 0.0, 1.0);
+            wardBarrierBoostSpec = builder.comment(
+                            "The multiplier applied to blocked damage while the Ichorium Shield of the Warden is in Barrier mode.",
+                            "A value of 1.5 blocks an additional 50% of the incoming damage.")
+                    .defineInRange("wardBarrierBoost", 1.5, 1.0, 10.0);
+            avalancheDamageSpec = builder.comment(
+                            "The extra damage, based on a percentage of the target's max health, that an Avalanche",
+                            "mallet strike deals against targets at full health. It is added on top of the strike's",
+                            "own damage (smash bonus, enchantments, effects). A value of 0.4 equates to 40% of the",
+                            "target's maximum health.")
+                    .defineInRange("avalancheDamage", 0.4, 0.0, 1.0);
+            spellbreakerDamageSpec = builder.comment(
+                            "The flat bonus damage dealt by a Spellbreaker spear strike.")
+                    .defineInRange("spellbreakerDamage", 8.0, 0.0, 100.0);
+            lungeDistanceSpec = builder.comment(
+                            "The distance of the Lunge dash of the Spellbreaker spear.")
+                    .defineInRange("lungeDistance", 7.0, 0.0, 20.0);
+            lungeDamageMultiplierSpec = builder.comment(
+                            "The bonus damage, as a multiplier of the attacker's attack damage, that the",
+                            "Spellbreaker spear lunge adds on top of each struck target's normal attack",
+                            "damage. A value of 1.5 equates to 150% of the attack damage as extra damage.")
+                    .defineInRange("lungeDamageMultiplier", 1.5, 0.0, 20.0);
             builder.pop();
         }
 
         void bake() {
             titanSlayerDamage = titanSlayerSpec.get();
+            wardReflectance = wardReflectanceSpec.get();
+            wardBarrierBoost = wardBarrierBoostSpec.get();
+            avalancheDamage = avalancheDamageSpec.get();
+            spellbreakerDamage = spellbreakerDamageSpec.get();
+            lungeDistance = lungeDistanceSpec.get();
+            lungeDamageMultiplier = lungeDamageMultiplierSpec.get();
         }
     }
 
@@ -107,18 +152,23 @@ public final class ConfigHandlerKami {
 
     public static class MiscCategory {
         public boolean alternateResearchBackground = false;
+        public double ichoriumCasterAuraDrain = 5.0;
 
         private final ModConfigSpec.BooleanValue alternateResearchBackgroundSpec;
+        private final ModConfigSpec.DoubleValue ichoriumCasterAuraDrainSpec;
 
         MiscCategory(ModConfigSpec.Builder builder) {
             builder.comment("Miscellaneous Settings").push("misc");
             alternateResearchBackgroundSpec = builder.comment("Enables an alternate much less colorful research background, highly recommended if the default background is too bright and hard to look at.")
                     .define("alternateResearchBackground", false);
+            ichoriumCasterAuraDrainSpec = builder.comment("The amount of vis per second the Ichorium Caster's Gauntlet draws from the aura in the 5x5 chunk area around its wielder.")
+                    .defineInRange("ichoriumCasterAuraDrain", 5.0, 0.0, 100.0);
             builder.pop();
         }
 
         void bake() {
             alternateResearchBackground = alternateResearchBackgroundSpec.get();
+            ichoriumCasterAuraDrain = ichoriumCasterAuraDrainSpec.get();
         }
     }
 

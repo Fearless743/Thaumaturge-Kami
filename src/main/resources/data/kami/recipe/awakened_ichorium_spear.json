@@ -1,0 +1,46 @@
+{
+  "type": "thaumaturge:infusion",
+  "aspects": [
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:praecantatio"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:perditio"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:instrumentum"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:potentia"
+    },
+    {
+      "amount": 500,
+      "aspect": "thaumaturge:motus"
+    }
+  ],
+  "catalyst": "kami:ichorium_spear",
+  "components": [
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star",
+    "thaumaturge:primordial_pearl",
+    "minecraft:nether_star"
+  ],
+  "instability": 10,
+  "research": {
+    "entry": "kami:awakened_ichorium_spear"
+  },
+  "result": {
+    "id": "kami:awakened_ichorium_spear",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  }
+}

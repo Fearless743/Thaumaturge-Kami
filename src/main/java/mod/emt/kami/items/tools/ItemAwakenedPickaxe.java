@@ -80,6 +80,9 @@ public class ItemAwakenedPickaxe extends ItemIchoriumPickaxe implements IAreaBre
             return InteractionResult.SUCCESS;
         }
         if (hand == InteractionHand.MAIN_HAND) {
+            // Entering the use state must be explicit on 26.1: returning CONSUME alone never
+            // starts it, so the release hooks (the area break) would never run.
+            player.startUsingItem(hand);
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

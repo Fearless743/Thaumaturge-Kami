@@ -173,9 +173,10 @@ public class ItemAwakenedSword extends ItemIchoriumSword {
             }
 
             float percentDamage = target.getMaxHealth() * (float) ConfigHandlerKami.tools.titanSlayerDamage;
-            if (percentDamage > event.getAmount()) {
-                event.setAmount(percentDamage);
-            }
+            //Additive by design: the strike keeps its full damage (attack attribute, enchantments,
+            //effects) and the slayer percentage is added on top. A Math.max-style replacement here
+            //would discard all of those bonuses whenever the percentage out-scales the hit.
+            event.setAmount(event.getAmount() + percentDamage);
         }
     }
 }

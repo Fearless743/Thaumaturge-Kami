@@ -1,0 +1,28 @@
+{
+  "type": "thaumaturge:arcane_workbench_shaped",
+  "crystals": [
+    {
+      "amount": 8,
+      "aspect": "thaumaturge:terra"
+    }
+  ],
+  "key": {
+    "I": "kami:ichorium_ingot",
+    "B": "kami:blessed_silverwood_rod"
+  },
+  "pattern": [
+    "III",
+    "IBI",
+    " B "
+  ],
+  "research": {
+    "entry": "kami:ichorium_tools"
+  },
+  "result": {
+    "id": "kami:ichorium_mallet",
+    "components": {
+      "minecraft:unbreakable": {}
+    }
+  },
+  "vis": 250
+}

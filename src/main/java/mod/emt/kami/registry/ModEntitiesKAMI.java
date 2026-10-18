@@ -2,6 +2,7 @@ package mod.emt.kami.registry;
 
 import mod.emt.kami.Kami;
 import mod.emt.kami.entities.EntityThrownAxe;
+import mod.emt.kami.entities.EntityThrownTrident;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -19,6 +20,13 @@ public final class ModEntitiesKAMI {
                     .clientTrackingRange(4)
                     .updateInterval(20)
                     .build(ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Kami.MOD_ID, "thrown_awakened_ichorium_axe"))));
+
+    public static final DeferredHolder<EntityType<?>, EntityType<EntityThrownTrident>> THROWN_ICHORIUM_TRIDENT =
+            ENTITY_TYPES.register("thrown_ichorium_trident", () -> EntityType.Builder.<EntityThrownTrident>of(EntityThrownTrident::new, MobCategory.MISC)
+                    .sized(0.5F, 0.5F)
+                    .clientTrackingRange(4)
+                    .updateInterval(20)
+                    .build(ResourceKey.create(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(Kami.MOD_ID, "thrown_ichorium_trident"))));
 
     private ModEntitiesKAMI() {}
 }

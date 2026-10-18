@@ -1,6 +1,7 @@
 package mod.emt.kami;
 
 import mod.emt.kami.config.ConfigHandlerKami;
+import mod.emt.kami.items.tools.ItemIchoriumCaster;
 import mod.emt.kami.registry.CreativeTabsKAMI;
 import mod.emt.kami.registry.ModBlocksKAMI;
 import mod.emt.kami.registry.ModDataComponentsKAMI;
@@ -32,6 +33,8 @@ public class Kami {
         ModEntitiesKAMI.ENTITY_TYPES.register(modEventBus);
         ModRecipeTypesKAMI.RECIPE_SERIALIZERS.register(modEventBus);
         ModDataComponentsKAMI.DATA_COMPONENTS.register(modEventBus);
+        ItemIchoriumCaster.CAPS.register(modEventBus);
+        ItemIchoriumCaster.RODS.register(modEventBus);
         ModMenusKAMI.register(modEventBus);
 
         modContainer.registerConfig(ModConfig.Type.COMMON, ConfigHandlerKami.SPEC);

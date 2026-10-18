@@ -55,6 +55,16 @@ public final class ModItemsKAMI {
     public static final DeferredItem<Item> AWAKENED_ICHORIUM_AXE = ITEMS.registerItem("awakened_ichorium_axe", ItemAwakenedAxe::new);
     public static final DeferredItem<Item> AWAKENED_ICHORIUM_SICKLE = ITEMS.registerItem("awakened_ichorium_sickle", ItemAwakenedSickle::new);
 
+    public static final DeferredItem<Item> ICHORIUM_SHIELD = ITEMS.registerItem("ichorium_shield", ItemIchoriumShield::new);
+    public static final DeferredItem<Item> ICHORIUM_TRIDENT = ITEMS.registerItem("ichorium_trident", ItemIchoriumTrident::new);
+    public static final DeferredItem<Item> ICHORIUM_SPEAR = ITEMS.registerItem("ichorium_spear", ItemIchoriumSpear::new);
+    public static final DeferredItem<Item> ICHORIUM_MALLET = ITEMS.registerItem("ichorium_mallet", ItemIchoriumMallet::new);
+
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_SHIELD = ITEMS.registerItem("awakened_ichorium_shield", ItemAwakenedShield::new);
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_TRIDENT = ITEMS.registerItem("awakened_ichorium_trident", ItemAwakenedTrident::new);
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_SPEAR = ITEMS.registerItem("awakened_ichorium_spear", ItemAwakenedSpear::new);
+    public static final DeferredItem<Item> AWAKENED_ICHORIUM_MALLET = ITEMS.registerItem("awakened_ichorium_mallet", ItemAwakenedMallet::new);
+
     public static final DeferredItem<Item> ICHORIUM_CASTER = ITEMS.registerItem("ichorium_caster", ItemIchoriumCaster::new);
 
     public static final DeferredItem<BlockItem> ICHOR_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("ichor_block", ModBlocksKAMI.ICHOR_BLOCK);

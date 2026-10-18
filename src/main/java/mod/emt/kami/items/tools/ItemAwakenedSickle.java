@@ -82,6 +82,9 @@ public class ItemAwakenedSickle extends ItemIchoriumHoe implements IAreaBreakToo
             return InteractionResult.SUCCESS;
         }
         if (hand == InteractionHand.MAIN_HAND) {
+            // Entering the use state must be explicit on 26.1: returning CONSUME alone never
+            // starts it, so the release hook (the harvest sweep) would never run.
+            player.startUsingItem(hand);
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

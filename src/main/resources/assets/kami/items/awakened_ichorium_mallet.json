@@ -1,0 +1,27 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "kami:mode_component",
+    "component": "kami:quake_mode",
+    "entries": [
+      {
+        "threshold": 1.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_mallet_gold"
+        }
+      },
+      {
+        "threshold": 2.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_mallet_red"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "kami:item/awakened_ichorium_mallet"
+    }
+  }
+}

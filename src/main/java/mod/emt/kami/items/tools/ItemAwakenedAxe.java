@@ -104,6 +104,9 @@ public class ItemAwakenedAxe extends ItemIchoriumAxe implements IAreaBreakTool {
             return InteractionResult.SUCCESS;
         }
         if (hand == InteractionHand.MAIN_HAND) {
+            // Entering the use state must be explicit on 26.1: returning CONSUME alone never
+            // starts it, so the release hook (the boomerang throw) would never run.
+            player.startUsingItem(hand);
             return InteractionResult.CONSUME;
         }
         return InteractionResult.PASS;

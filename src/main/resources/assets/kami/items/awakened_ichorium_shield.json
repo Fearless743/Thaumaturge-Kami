@@ -1,0 +1,147 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "kami:mode_component",
+    "component": "kami:ward_mode",
+    "entries": [
+      {
+        "threshold": 1.0,
+        "model": {
+          "type": "minecraft:condition",
+          "on_false": {
+            "type": "minecraft:special",
+            "base": "kami:item/awakened_ichorium_shield_blue_held",
+            "model": {
+              "type": "kami:ichorium_shield",
+              "texture": "kami:entity/shield/awakened_ichorium_shield_blue"
+            }
+          },
+          "on_true": {
+            "type": "minecraft:special",
+            "base": "kami:item/awakened_ichorium_shield_blue_blocking",
+            "model": {
+              "type": "kami:ichorium_shield",
+              "texture": "kami:entity/shield/awakened_ichorium_shield_blue"
+            }
+          },
+          "property": "minecraft:using_item",
+          "transformation": {
+            "left_rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "right_rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              -1.0,
+              -1.0
+            ],
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      },
+      {
+        "threshold": 2.0,
+        "model": {
+          "type": "minecraft:condition",
+          "on_false": {
+            "type": "minecraft:special",
+            "base": "kami:item/awakened_ichorium_shield_green_held",
+            "model": {
+              "type": "kami:ichorium_shield",
+              "texture": "kami:entity/shield/awakened_ichorium_shield_green"
+            }
+          },
+          "on_true": {
+            "type": "minecraft:special",
+            "base": "kami:item/awakened_ichorium_shield_green_blocking",
+            "model": {
+              "type": "kami:ichorium_shield",
+              "texture": "kami:entity/shield/awakened_ichorium_shield_green"
+            }
+          },
+          "property": "minecraft:using_item",
+          "transformation": {
+            "left_rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "right_rotation": [
+              0.0,
+              0.0,
+              0.0,
+              1.0
+            ],
+            "scale": [
+              1.0,
+              -1.0,
+              -1.0
+            ],
+            "translation": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:condition",
+      "on_false": {
+        "type": "minecraft:special",
+        "base": "kami:item/awakened_ichorium_shield_held",
+        "model": {
+          "type": "kami:ichorium_shield",
+          "texture": "kami:entity/shield/awakened_ichorium_shield"
+        }
+      },
+      "on_true": {
+        "type": "minecraft:special",
+        "base": "kami:item/awakened_ichorium_shield_blocking",
+        "model": {
+          "type": "kami:ichorium_shield",
+          "texture": "kami:entity/shield/awakened_ichorium_shield"
+        }
+      },
+      "property": "minecraft:using_item",
+      "transformation": {
+        "left_rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "right_rotation": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "scale": [
+          1.0,
+          -1.0,
+          -1.0
+        ],
+        "translation": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    }
+  }
+}

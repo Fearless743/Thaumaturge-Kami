@@ -1,0 +1,201 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "kami:mode_component",
+    "component": "kami:storm_mode",
+    "entries": [
+      {
+        "threshold": 1.0,
+        "model": {
+          "type": "minecraft:select",
+          "cases": [
+            {
+              "model": {
+                "type": "minecraft:model",
+                "model": "kami:item/awakened_ichorium_trident_yellow"
+              },
+              "when": [
+                "gui",
+                "ground",
+                "fixed",
+                "on_shelf"
+              ]
+            }
+          ],
+          "fallback": {
+            "type": "minecraft:condition",
+            "on_false": {
+              "type": "minecraft:special",
+              "base": "kami:item/awakened_ichorium_trident_yellow_in_hand",
+              "model": {
+                "type": "kami:ichorium_trident",
+                "texture": "kami:entity/trident/awakened_ichorium_trident_yellow"
+              }
+            },
+            "on_true": {
+              "type": "minecraft:special",
+              "base": "kami:item/awakened_ichorium_trident_yellow_throwing",
+              "model": {
+                "type": "kami:ichorium_trident",
+                "texture": "kami:entity/trident/awakened_ichorium_trident_yellow"
+              }
+            },
+            "property": "minecraft:using_item",
+            "transformation": {
+              "left_rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ],
+              "right_rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                -1.0,
+                -1.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "property": "minecraft:display_context"
+        }
+      },
+      {
+        "threshold": 2.0,
+        "model": {
+          "type": "minecraft:select",
+          "cases": [
+            {
+              "model": {
+                "type": "minecraft:model",
+                "model": "kami:item/awakened_ichorium_trident_aqua"
+              },
+              "when": [
+                "gui",
+                "ground",
+                "fixed",
+                "on_shelf"
+              ]
+            }
+          ],
+          "fallback": {
+            "type": "minecraft:condition",
+            "on_false": {
+              "type": "minecraft:special",
+              "base": "kami:item/awakened_ichorium_trident_aqua_in_hand",
+              "model": {
+                "type": "kami:ichorium_trident",
+                "texture": "kami:entity/trident/awakened_ichorium_trident_aqua"
+              }
+            },
+            "on_true": {
+              "type": "minecraft:special",
+              "base": "kami:item/awakened_ichorium_trident_aqua_throwing",
+              "model": {
+                "type": "kami:ichorium_trident",
+                "texture": "kami:entity/trident/awakened_ichorium_trident_aqua"
+              }
+            },
+            "property": "minecraft:using_item",
+            "transformation": {
+              "left_rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ],
+              "right_rotation": [
+                0.0,
+                0.0,
+                0.0,
+                1.0
+              ],
+              "scale": [
+                1.0,
+                -1.0,
+                -1.0
+              ],
+              "translation": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          },
+          "property": "minecraft:display_context"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:select",
+      "cases": [
+        {
+          "model": {
+            "type": "minecraft:model",
+            "model": "kami:item/awakened_ichorium_trident"
+          },
+          "when": [
+            "gui",
+            "ground",
+            "fixed",
+            "on_shelf"
+          ]
+        }
+      ],
+      "fallback": {
+        "type": "minecraft:condition",
+        "on_false": {
+          "type": "minecraft:special",
+          "base": "kami:item/awakened_ichorium_trident_in_hand",
+          "model": {
+            "type": "kami:ichorium_trident",
+            "texture": "kami:entity/trident/awakened_ichorium_trident"
+          }
+        },
+        "on_true": {
+          "type": "minecraft:special",
+          "base": "kami:item/awakened_ichorium_trident_throwing",
+          "model": {
+            "type": "kami:ichorium_trident",
+            "texture": "kami:entity/trident/awakened_ichorium_trident"
+          }
+        },
+        "property": "minecraft:using_item",
+        "transformation": {
+          "left_rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "right_rotation": [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          "scale": [
+            1.0,
+            -1.0,
+            -1.0
+          ],
+          "translation": [
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "property": "minecraft:display_context"
+    }
+  }
+}

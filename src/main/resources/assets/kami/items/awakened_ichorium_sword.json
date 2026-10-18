@@ -1,6 +1,41 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "kami:item/awakened_ichorium_sword"
+    "type": "minecraft:range_dispatch",
+    "property": "kami:mode_component",
+    "component": "kami:slayer_mode",
+    "entries": [
+      {
+        "threshold": 1.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_sword_red"
+        }
+      },
+      {
+        "threshold": 2.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_sword_green"
+        }
+      },
+      {
+        "threshold": 3.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_sword_blue"
+        }
+      },
+      {
+        "threshold": 4.0,
+        "model": {
+          "type": "minecraft:model",
+          "model": "kami:item/awakened_ichorium_sword_purple"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "kami:item/awakened_ichorium_sword"
+    }
   }
 }

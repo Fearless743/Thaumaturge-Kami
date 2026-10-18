@@ -47,5 +47,25 @@ public final class ModDataComponentsKAMI {
             DATA_COMPONENTS.registerComponentType("harvest_mode",
                     builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
 
+    /**Selected ward mode of the Awakened Ichorium Shield.*/
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> WARD_MODE =
+            DATA_COMPONENTS.registerComponentType("ward_mode",
+                    builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**Selected storm mode of the Awakened Ichorium Trident.*/
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STORM_MODE =
+            DATA_COMPONENTS.registerComponentType("storm_mode",
+                    builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**Selected lance mode of the Awakened Ichorium Spear.*/
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> LANCE_MODE =
+            DATA_COMPONENTS.registerComponentType("lance_mode",
+                    builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**Selected quake mode of the Awakened Ichorium Maul.*/
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> QUAKE_MODE =
+            DATA_COMPONENTS.registerComponentType("quake_mode",
+                    builder -> builder.persistent(Codec.INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
     private ModDataComponentsKAMI() {}
 }
