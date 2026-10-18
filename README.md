@@ -1,72 +1,80 @@
 # Thaumaturge Kami
 
-[![Requires MixinBooter](https://img.shields.io/badge/Requires-MixinBooter-C48733.svg?labelColor=A45104&style=for-the-badge)](https://www.curseforge.com/minecraft/mc-mods/mixin-booter)
-[![Requires ThaumicAPI](https://img.shields.io/badge/Requires-ThaumicAPI-C48733.svg?labelColor=A45104&style=for-the-badge)](https://www.curseforge.com/minecraft/mc-mods/thaumicapi)
+[![GitHub](https://img.shields.io/badge/GitHub-Thaumic--Modding--Team%2FKamiReborn-181717.svg?logo=github&style=for-the-badge)](https://github.com/Thaumic-Modding-Team/KamiReborn)
+[![Requires Thaumaturge](https://img.shields.io/badge/Requires-Thaumaturge-C48733.svg?labelColor=A45104&style=for-the-badge)](https://github.com/Leclowndu93150/Thaumaturge)
 
-Thaumaturge Kami is a port of the KAMI content from Thaumic Tinkerer for Thaumcraft 6, and has been rewritten from the ground up. Its main focus is to introduce high-tier endgame content into the game.
+**Thaumaturge Kami** is a from-scratch port and rewrite of the KAMI content from Thaumic Tinkerer, built for [Thaumaturge](https://github.com/Leclowndu93150/Thaumaturge) — the successor of Thaumcraft on Minecraft 26.1 (NeoForge). Its focus is high-tier endgame content: the **Zenith** research branch and equipment forged from Ichor, the blood of the gods.
 
-Unlike the original, Thaumic Tinkerer is no longer a required dependency for this mod. You can find the reborn counterpart here: [Thaumic Tinkerer: Reborn](https://www.curseforge.com/minecraft/mc-mods/thaumic-tinkerer-reborn).
+Unlike the original mod, **Thaumic Tinkerer is not required**. If you want its content back, check out the reborn counterpart: [Thaumic Tinkerer: Reborn](https://www.curseforge.com/minecraft/mc-mods/thaumic-tinkerer-reborn).
 
-#### [The Zenith research category is accessible after the following is unlocked]:
-See "research/basics".
-- Flux Rifts
-- Primal Crusher
-- Primordial Pearls
-- Void Seeds
-- Voidseer's Pearl
-- Void Siphon
-- Void Thaumaturge Armor
-- Warp
+## Requirements
 
-#### [With Thaumic Augmentation installed, the unlock requirements will be different]:
-See "research/compat/basics_thaumic_augmentation".
-- Expanded Impetus
-- Flux Rifts
-- Primordial Pearls
-- Voidseer Caster's Gauntlet
-- Warp
+| Dependency | Version |
+|:-----------|:--------|
+| Minecraft   | 26.1.x  |
+| NeoForge    | 26.1.x  |
+| Thaumaturge | 1.0+    |
+| Java        | 25      |
 
----
+## Getting Started
 
-## Ichor
-- **Ichor:** A powerful material forged from diamond, primordial energy, and dimensional materials. It is used to make almost all the content in this mod.
-- **Ichorweave Fabric / Ichorium:** Ichor is also used to create a powerful new metal and fabric material.
-- **Ichorium Tools / Ichorweave Armor:** All equipment made out of Ichor are completely unbreakable.
-- **Bottomless Pouch:** An upgraded Focus Pouch that can has **117 slots** and the ability to carry any item!
-- **Ichorium Caster's Gauntlet of the Ascended:** A powerful casting gauntlet that reduces vis cost by 40%, and distributes vis drain across a 5x5 chunk area centered on the player.
-- **Infusion Enchantment: Eternal:** (Includes config disable) Thought Ichorium equipment never breaking is crazy? How about making any tool unbreakable!
+1. Progress through Thaumaturge's **Eldritch** path. The Zenith research category unlocks after completing its endgame research: Flux Rifts, the Primal Crusher, Primordial Pearls, Void Thaumaturge armor, the Voidseer's Pearl, the Void Siphon, and Warp.
+2. Use Infusion to forge the first **Ichor** — a diamond catalyst fused with a Primordial Pearl, an Eye of Ender, a Ghast Tear, and a heavy dose of primal essentia.
+3. Bond Ichor with Void Metal to create **Ichorium**, and weave **Ichorweave Fabric**. Everything in this mod is built from these materials via Infusion.
 
-## Awakened Ichor
-Awakened Ichor equipment is extremely powerful. Awakened tools have various "modes" that can be cycled by sneaking and right-clicking. Awakened armor grants individual item bonuses and grants an 80% reduction to damage taken when the full set is equipped.
+## Ichor & Ichorium
 
-- **Ichorium Axe of the Stormbreaker:** Capable of chopping entire trees and be thrown around like a boomerang. Impact modes change the effect when the thrown axe collides with a surface or entity.
-- **Ichorium Pickaxe of the Tunneler:** Fully focused on mining and making tunnels. Hold right-click to dig massive tunnels instantly!
-- **Ichorium Shovel of the Gravedigger:** Digging is not just its speciality, one can bury any nearby mobs with it! Hold right-click to inter all mobs near the player.
-- **Ichorium Sword of the Titanslayer:** Has the ability to attune itself to different creature types. While attuned, the sword bypasses armor and deals significantly more damage.
-- **Ichorweave Hood of the Abyssal Depths:** Grants infinite Water Breathing and Night Vision for swimming underwater.
-- **Ichorweave Robe of the Stratosphere:** Allows infinite flight and provides full immunity to fall damage.
-- **Ichorweave Leggings of the Burning Mantle:** Gives the ability to double jump, provides immunity to fire and lava, and prevents the wearer from being afflicted with poison or wither effects.
-- **Ichorweave Boots of the Biosphere:** Grants increased movement speed, jump height, swim speed and prevents the wearer from being afflicted with Slowness.
+- **Ichor:** A powerful material melded from diamond, primordial energy, and otherworldly components. Also craftable into a storage block.
+- **Ichorium / Ichorweave Fabric:** Ichor bonded with Void Metal into an indestructible metal, and woven into an equally durable fabric.
+- **Ichorium Tools & Ichorweave Armor:** Every piece of Ichor-based equipment is **completely unbreakable**. All armor pieces are dyeable.
+- **Bottomless Pouch:** An upgraded focus pouch with **117 slots** that can carry *any* item. Equip it and press the open key to access it anywhere.
+- **Ichorium Caster's Gauntlet of the Ascended:** A caster's gauntlet with a 500 vis reserve, **30% reduced vis costs**, and a constant aura siphon that draws vis from the surrounding **5x5 chunk area** into its reserve. Dyeable.
 
-## 🔁 Mod Integration
-- **[Thaumic Augmentation](https://www.curseforge.com/minecraft/mc-mods/thaumic-augmentation)**
-  - The Ichorium Caster's Gauntlet can be modified with gauntlet augments (5 augment slots).
-  - Zenith's requirements
-- **[ThaumicTweaker](https://www.curseforge.com/minecraft/mc-mods/thaumictweaker)**
-  - Full subtitle support for all research entries, see [here](https://github.com/Thaumic-Modding-Team/ThaumicTweaker/wiki/Research-Subtitles) for more info!
-- **[Tinkers' Antique](https://www.curseforge.com/minecraft/mc-mods/tinkers-antique) / [Antique Armory](https://www.curseforge.com/minecraft/mc-mods/antique-armory)**
-  - Ichorium Tool/Armor Material
-  - Divine Mandate Modifier: The affected tool will make dropped items instantly teleport to the player and have zero pickup delay.
-  - God Complex Trait: Having a tool with two (configurable) or more parts of this trait will make it unbreakable.
+## Awakened Ichorium Tools
 
----
+Awakened tools are Ichorium tools pushed beyond their limits through a second, far more demanding infusion. Cycle their modes by **sneaking and right-clicking empty air**, and hold right-click to charge their signature abilities. Every awakened tool also teleports harvested drops straight to your feet — say goodbye to losing loot in lava.
+
+| Tool | Signature Power | Modes |
+|:-----|:----------------|:------|
+| **Ichorium Axe of the Stormbreaker** | Fells entire trees in one swing; can be thrown like a boomerang | Impact: Damaging / Thundering / Detonation / Explosion |
+| **Ichorium Pickaxe of the Tunneler** | Harvests huge areas of stone; hold right-click to bore a tunnel | Adjustable harvest area (up to 7x7), tunnel depth up to 15 |
+| **Ichorium Shovel of the Gravedigger** | Digs large areas; charges up to bury nearby creatures alive | Inter: Undead / Animals / Hostiles / All |
+| **Ichorium Sword of the Titanslayer** | Doubled base damage when unattuned; attuned strikes bypass armor and deal up to 20% of the target's max health | Mortal's Bane / Undead Slayer / Dragonslayer / Abomination Slayer |
+| **Ichorium Sickle of the Harvester** | Reaps massive areas of crops and plants in one swing | Harvest: Reap / Sowing / Grasslands / Canopy / Skulls |
+| **Ichorium Shield of the Warden** | A nigh-indestructible shield with a twist | Ward: Guard / Reflect / Barrier |
+| **Ichorium Trident of the Stormcaller** | A loyal trident that always returns to your hand | Storm: Throw / Thunder / Tide |
+| **Ichorium Spear of the Spellbreaker** | A kinetic spear that stores momentum for devastating strikes | Lance: Thrust / Spellbreak / Lunge |
+| **Ichorium Mallet of the Avalanche** | A monstrous mace whose smash attacks shake the earth | Quake: Shock / Aftershock / Avalanche |
+
+## Awakened Ichorweave Armor
+
+Awakened armor grants a powerful individual bonus per piece, and wearing the **full set reduces all damage taken by 80%**. Still fully dyeable — and still unbreakable.
+
+- **Ichorweave Hood of the Abyssal Depths:** Infinite Water Breathing and Night Vision while underwater.
+- **Ichorweave Robe of the Stratosphere:** Unrestricted creative-style flight and complete fall damage immunity.
+- **Ichorweave Leggings of the Burning Mantle:** Double jump, immunity to fire, lava, poison, and wither.
+- **Ichorweave Boots of the Biosphere:** Increased movement speed, jump height, and swim speed; immunity to Slowness.
+
+## Configuration
+
+Almost everything is tunable in the config file (`config/kami.toml`):
+
+- **Armor:** Movement, swim, and jump bonuses granted by the Biosphere Boots.
+- **Tools:** Titanslayer strike damage, Warden reflectance and barrier boost, Avalanche smash damage, Spellbreaker strike damage, lunge distance and damage.
+- **Misc:** The Ichorium Gauntlet's aura drain rate, and an alternate, less saturated research background for those who find the default one hard on the eyes.
+
+## Localization
+
+- English
+- Русский (courtesy of leskovetz)
+- 简体中文 (courtesy of ZHAY10086)
 
 ## 🙏 Special Thanks
-- Original Thaumic Tinkerer developers ~ pixlepix, Vazkii, and others
-- Some textures used from Fake Thaummy Pack ~ Fakeginkgo
 
----
+- The original Thaumic Tinkerer developers ~ pixlepix, Vazkii, and others
+- Fakeginkgo for the Fake Thaummy Pack, from which some textures are used
+- [Leclowndu93150](https://github.com/Leclowndu93150) for Thaumaturge
 
 ## Licensing
 
-Code and new assets (textures, sounds, models, etc) for this mod are **All Rights Reserved** (see LICENSE and LICENSE_ASSETS). Original Thaumic Tinkerer assets are **CC BY-NC-SA 3.0 Unported** (see LICENSE_ASSETS_TT).
+Code and new assets (textures, sounds, models, etc) for this mod are **All Rights Reserved** (see [LICENSE](LICENSE) and [LICENSE_ASSETS](LICENSE_ASSETS)). Original Thaumic Tinkerer assets are **CC BY-NC-SA 3.0 Unported** (see [LICENSE_ASSETS_TT](LICENSE_ASSETS_TT)).
