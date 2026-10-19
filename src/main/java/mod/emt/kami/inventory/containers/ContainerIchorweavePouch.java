@@ -27,17 +27,33 @@ public class ContainerIchorweavePouch extends AbstractContainerMenu {
     private final ItemStack pouchStack;
     private final PouchStackHandler pouchHandler;
 
-    /** Factory constructor used by {@link ModMenusKAMI#ICHORWEAVE_POUCH} (client and server). */
-    public ContainerIchorweavePouch(int containerId, Inventory playerInventory) {
+    /**
+     * Factory constructor used by {@link ModMenusKAMI#ICHORWEAVE_POUCH} (client and server).
+     *
+     * @param pouchIndex index of the pouch inside the player's non-equipment items, written as
+     *                   extra menu data by whoever opened the menu ({@code -1} when unspecified)
+     */
+    public ContainerIchorweavePouch(int containerId, Inventory playerInventory, int pouchIndex) {
         super(ModMenusKAMI.ICHORWEAVE_POUCH.get(), containerId);
-        this.pouchStack = findPouch(playerInventory);
+        this.pouchStack = findPouch(playerInventory, pouchIndex);
         this.pouchHandler = new PouchStackHandler(this.pouchStack);
         this.bindPouchInventory();
         this.bindPlayerInventory(playerInventory);
     }
 
-    private static ItemStack findPouch(Inventory playerInventory) {
+    /**
+     * Resolves the stack this menu edits: {@code pouchIndex} pins the exact pouch the player
+     * opened (the held one when right-clicking), so a second pouch carried elsewhere can no longer
+     * hijack the menu. Falls back to the first pouch found when the index is unset or stale.
+     */
+    private static ItemStack findPouch(Inventory playerInventory, int pouchIndex) {
         NonNullList<ItemStack> items = playerInventory.getNonEquipmentItems();
+        if (pouchIndex >= 0 && pouchIndex < items.size()) {
+            ItemStack indexed = items.get(pouchIndex);
+            if (!indexed.isEmpty() && indexed.is(ModItemsKAMI.FOCUS_POUCH.get())) {
+                return indexed;
+            }
+        }
         for (ItemStack stack : items) {
             if (!stack.isEmpty() && stack.is(ModItemsKAMI.FOCUS_POUCH.get())) {
                 return stack;

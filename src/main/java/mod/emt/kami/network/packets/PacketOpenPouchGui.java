@@ -3,6 +3,7 @@ package mod.emt.kami.network.packets;
 import mod.emt.kami.Kami;
 import mod.emt.kami.inventory.containers.ContainerIchorweavePouch;
 import mod.emt.kami.registry.ModItemsKAMI;
+import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
@@ -34,21 +35,27 @@ public record PacketOpenPouchGui() implements CustomPacketPayload {
 
     public static void handle(PacketOpenPouchGui payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (!hasPouch(context.player().getInventory())) {
+            int pouchIndex = findPouch(context.player().getInventory());
+            if (pouchIndex < 0) {
                 return;
             }
+            //The index is sent as extra menu data so the client builds its menu copy around the
+            //same stack the server picked.
             context.player().openMenu(new SimpleMenuProvider(
-                    (containerId, inventory, player) -> new ContainerIchorweavePouch(containerId, inventory),
-                    Component.translatable("container.kami.ichorweave_pouch")));
+                    (containerId, inventory, player) -> new ContainerIchorweavePouch(containerId, inventory, pouchIndex),
+                    Component.translatable("container.kami.ichorweave_pouch")),
+                    buf -> buf.writeVarInt(pouchIndex));
         });
     }
 
-    private static boolean hasPouch(Inventory inventory) {
-        for (ItemStack stack : inventory.getNonEquipmentItems()) {
+    private static int findPouch(Inventory inventory) {
+        NonNullList<ItemStack> items = inventory.getNonEquipmentItems();
+        for (int i = 0; i < items.size(); i++) {
+            ItemStack stack = items.get(i);
             if (!stack.isEmpty() && stack.is(ModItemsKAMI.FOCUS_POUCH.get())) {
-                return true;
+                return i;
             }
         }
-        return false;
+        return -1;
     }
 }
